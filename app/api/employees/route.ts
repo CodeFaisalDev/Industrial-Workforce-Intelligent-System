@@ -1,5 +1,6 @@
 import { NextResponse } from 'next/server';
 import { db } from '@/lib/db';
+import bcrypt from 'bcryptjs';
 
 export async function GET() {
   try {
@@ -31,16 +32,19 @@ export async function GET() {
 export async function POST(request: Request) {
   try {
     const body = await request.json();
-    const { name, email, role, department_id } = body;
+    const { name, email, role, department_id, password } = body;
 
     if (!name || !email) {
       return NextResponse.json({ success: false, error: 'Name and Email are required.' }, { status: 400 });
     }
 
+    const rawPassword = password || 'worker123';
+    const hashedPassword = bcrypt.hashSync(rawPassword, 10);
+
     await db.query(
-      `INSERT INTO employees (name, email, role, department_id, status)
-       VALUES ($1, $2, $3, $4, 'Active')`,
-      [name, email, role || 'Worker', department_id || null]
+      `INSERT INTO employees (name, email, role, department_id, status, password)
+       VALUES ($1, $2, $3, $4, 'Active', $5)`,
+      [name, email, role || 'Worker', department_id || null, hashedPassword]
     );
 
     return NextResponse.json({ success: true, message: 'Employee profile created successfully!' });

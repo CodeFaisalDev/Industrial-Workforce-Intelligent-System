@@ -1,8 +1,6 @@
 import { NextResponse } from 'next/server';
 import { db } from '@/lib/db';
-
-const GROQ_API_KEY = process.env.GROQ_API_KEY || process.env.groq_api_key;
-const GROQ_MODEL = 'llama-3.3-70b-specdec';
+import { callAIWithFallback } from '@/lib/ai-provider';
 
 export async function GET(request: Request) {
   try {
@@ -121,14 +119,7 @@ Relevant Company Policies (RAG Context):
 ${policies.map((p, idx) => `[Policy ${idx + 1} (${p.source_doc})]: ${p.chunk_text}`).join('\n\n')}
 `;
 
-    // Connect to Groq
-    if (!GROQ_API_KEY) {
-      return NextResponse.json({
-        success: true,
-        reply: `Hello ${employee.name}, I am currently running in offline mock mode (no Groq key configured). Here is your shift count: ${shifts.length} recent shifts. Please contact HR for assistance.`,
-      });
-    }
-
+    // Connect to AI (Groq -> Gemini fallback)
     const messages = [
       {
         role: 'system',
@@ -147,27 +138,14 @@ Guidelines:
       { role: 'user', content: `Context:\n${context}\n\nUser Question: ${message}` }
     ];
 
-    const response = await fetch('https://api.groq.com/openai/v1/chat/completions', {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-        'Authorization': `Bearer ${GROQ_API_KEY}`,
-      },
-      body: JSON.stringify({
-        model: GROQ_MODEL,
-        messages,
-        temperature: 0.3,
-        max_tokens: 500,
-      }),
+    const reply = await callAIWithFallback({
+      prompt: message,
+      messages,
+      temperature: 0.3,
+      maxTokens: 500,
     });
 
-    if (!response.ok) {
-      const errText = await response.text();
-      throw new Error(`Groq Chatbot API status ${response.status}: ${errText}`);
-    }
-
-    const data = await response.json();
-    const reply = data.choices[0].message.content.trim();
+    const finalReply = reply || `Hello ${employee.name}, I am currently running in offline mode (all AI providers exhausted). Here is your shift count: ${shifts.length} recent shifts. Please contact HR for assistance.`;
 
     // 7. Save user message and bot reply to database
     await db.query(
@@ -177,10 +155,10 @@ Guidelines:
 
     await db.query(
       `INSERT INTO chatbot_conversations (user_id, message, role) VALUES ($1, $2, 'assistant')`,
-      [user_id, reply]
+      [user_id, finalReply]
     );
 
-    return NextResponse.json({ success: true, reply });
+    return NextResponse.json({ success: true, reply: finalReply });
   } catch (error: any) {
     console.error('Failed to process chat:', error);
     return NextResponse.json({ success: false, error: error.message }, { status: 500 });

@@ -14,6 +14,7 @@ import {
 } from './ui/dropdown-menu';
 import { Avatar, AvatarFallback } from './ui/avatar';
 import { Sheet, SheetContent, SheetTrigger } from './ui/sheet';
+import { useSession, signOut } from 'next-auth/react';
 
 interface SidebarProps {
   currentTab: string;
@@ -89,7 +90,6 @@ interface DashboardLayoutProps {
   currentTab: string;
   setCurrentTab: (tab: string) => void;
   role: string;
-  setRole: (role: string) => void;
   onOpenChat: () => void;
 }
 
@@ -98,9 +98,9 @@ export default function DashboardLayout({
   currentTab,
   setCurrentTab,
   role,
-  setRole,
   onOpenChat,
 }: DashboardLayoutProps) {
+  const { data: session } = useSession();
   const [time, setTime] = useState('');
   const [isDark, setIsDark] = useState(false);
 
@@ -127,13 +127,7 @@ export default function DashboardLayout({
     }
   };
 
-  const getRoleUser = () => {
-    if (role === 'HR Admin') return { name: 'Kafi Ahmed', initials: 'KA' };
-    if (role === 'Floor Manager') return { name: 'Nazmul Hasan', initials: 'NH' };
-    return { name: 'Faria Sultana', initials: 'FS' };
-  };
 
-  const activeUser = getRoleUser();
 
   return (
     <div className="flex min-h-screen bg-background text-foreground font-sans">
@@ -175,33 +169,32 @@ export default function DashboardLayout({
               {isDark ? <Sun size={16} /> : <Moon size={16} />}
             </Button>
 
-            {/* Role Switcher Demo Tool */}
+            {/* Role Switcher replaced with actual Authenticated User Options */}
             <DropdownMenu>
               <DropdownMenuTrigger render={
                 <div className="flex items-center gap-2.5 cursor-pointer bg-secondary/30 hover:bg-secondary/70 p-1.5 pr-3 rounded-lg border border-border transition-colors" />
               }>
                 <Avatar className="h-7 w-7 rounded-md">
                   <AvatarFallback className="text-xs bg-primary/10 text-primary font-bold">
-                    {activeUser.initials}
+                    {(session?.user?.name || 'User')
+                      .split(' ')
+                      .map((n) => n[0])
+                      .join('')
+                      .toUpperCase()
+                      .slice(0, 2)}
                   </AvatarFallback>
                 </Avatar>
                 <div className="text-left hidden sm:block">
-                  <p className="text-xs font-semibold leading-none">{activeUser.name}</p>
+                  <p className="text-xs font-semibold leading-none">{session?.user?.name || 'User'}</p>
                   <p className="text-[9px] text-muted-foreground mt-0.5">{role}</p>
                 </div>
               </DropdownMenuTrigger>
               <DropdownMenuContent align="end" className="w-48">
                 <div className="px-2 py-1.5 border-b border-border">
-                  <span className="text-[10px] uppercase font-bold text-muted-foreground font-mono">Select Active Persona</span>
+                  <span className="text-[10px] uppercase font-bold text-muted-foreground font-mono">User Options</span>
                 </div>
-                <DropdownMenuItem onClick={() => setRole('HR Admin')} className="text-xs font-medium cursor-pointer">
-                  HR Admin (Kafi)
-                </DropdownMenuItem>
-                <DropdownMenuItem onClick={() => setRole('Floor Manager')} className="text-xs font-medium cursor-pointer">
-                  Floor Manager (Nazmul)
-                </DropdownMenuItem>
-                <DropdownMenuItem onClick={() => setRole('Worker')} className="text-xs font-medium cursor-pointer">
-                  Worker (Faria)
+                <DropdownMenuItem onClick={() => signOut({ callbackUrl: '/login' })} className="text-xs font-medium cursor-pointer text-destructive hover:bg-destructive/10 hover:text-destructive">
+                  Sign Out
                 </DropdownMenuItem>
               </DropdownMenuContent>
             </DropdownMenu>

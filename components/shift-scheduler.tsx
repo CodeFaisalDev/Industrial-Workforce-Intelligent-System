@@ -10,12 +10,14 @@ import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, Di
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from './ui/select';
 import { Badge } from './ui/badge';
 import { Calendar, User, Clock, ShieldCheck, ArrowUpDown, AlertCircle } from 'lucide-react';
+import { useSession } from 'next-auth/react';
 
 interface SchedulerProps {
   role: string;
 }
 
 export default function ShiftScheduler({ role }: SchedulerProps) {
+  const { data: session } = useSession();
   const [shifts, setShifts] = useState<any[]>([]);
   const [employees, setEmployees] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
@@ -27,10 +29,8 @@ export default function ShiftScheduler({ role }: SchedulerProps) {
   const [status, setStatus] = useState('Scheduled');
   const [isAssignOpen, setIsAssignOpen] = useState(false);
 
-  // Swap requests state (simulated)
-  const [swaps, setSwaps] = useState<any[]>([
-    { id: 1, employee_name: 'Faria Sultana', date: 'Tomorrow', shift: 'Day Shift', reason: 'Family engagement', status: 'Pending' }
-  ]);
+  // Swap requests state
+  const [swaps, setSwaps] = useState<any[]>([]);
 
   const fetchData = async () => {
     try {
@@ -44,6 +44,11 @@ export default function ShiftScheduler({ role }: SchedulerProps) {
       const shiftsRes = await fetch('/api/shifts');
       const shiftsData = await shiftsRes.json();
       setShifts(shiftsData.shifts || []);
+
+      // Fetch swaps
+      const swapsRes = await fetch('/api/shifts/swap');
+      const swapsData = await swapsRes.json();
+      setSwaps(swapsData.swaps || []);
     } catch (error) {
       console.error('Failed to load scheduler data:', error);
     } finally {
@@ -88,21 +93,50 @@ export default function ShiftScheduler({ role }: SchedulerProps) {
     }
   };
 
-  const handleApproveSwap = (id: number) => {
-    setSwaps(swaps.map(s => s.id === id ? { ...s, status: 'Approved' } : s));
+  const handleApproveSwap = async (id: number) => {
+    try {
+      const res = await fetch('/api/shifts/swap', {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          swap_id: id,
+          status: 'Approved',
+        }),
+      });
+      const data = await res.json();
+      if (data.success) {
+        fetchData();
+      }
+    } catch (error) {
+      console.error('Failed to approve shift swap:', error);
+    }
   };
 
-  const handleRequestSwap = (shiftDate: string, timeStr: string) => {
-    const newSwap = {
-      id: swaps.length + 1,
-      employee_name: 'Faria Sultana',
-      date: shiftDate,
-      shift: timeStr,
-      reason: 'Shift adjustments',
-      status: 'Pending'
-    };
-    setSwaps([...swaps, newSwap]);
-    alert('Shift swap request submitted to Floor Manager!');
+  const handleRequestSwap = async (shiftDate: string, timeStr: string) => {
+    if (!session?.user) return;
+    const empIdVal = parseInt((session.user as any).id);
+    const empNameVal = session.user.name || 'Worker';
+
+    try {
+      const res = await fetch('/api/shifts/swap', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          employee_id: empIdVal,
+          employee_name: empNameVal,
+          date: shiftDate,
+          shift: timeStr === '08:00:00' || timeStr.startsWith('08') ? 'Day Shift' : 'Night Shift',
+          reason: 'Shift adjustments',
+        }),
+      });
+      const data = await res.json();
+      if (data.success) {
+        alert('Shift swap request submitted to Floor Manager!');
+        fetchData();
+      }
+    } catch (error) {
+      console.error('Failed to submit shift swap request:', error);
+    }
   };
 
   const daysOfWeek = ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday', 'Sunday'];
@@ -239,11 +273,11 @@ export default function ShiftScheduler({ role }: SchedulerProps) {
                     </TableCell>
                     <TableCell className="text-right">
                       {/* Worker shift swap request button */}
-                      {role === 'Worker' && shift.employee_name === 'Faria Sultana' && shift.status === 'Scheduled' && (
+                      {role === 'Worker' && shift.employee_name === session?.user?.name && shift.status === 'Scheduled' && (
                         <Button 
                           variant="ghost" 
                           size="sm" 
-                          onClick={() => handleRequestSwap(new Date(shift.date).toLocaleDateString(), shift.start_time.slice(0, 5))}
+                          onClick={() => handleRequestSwap(new Date(shift.date).toLocaleDateString(), shift.start_time)}
                           className="text-[10px] font-bold h-7 px-2 hover:bg-primary/10 hover:text-primary rounded-md"
                         >
                           Request Swap

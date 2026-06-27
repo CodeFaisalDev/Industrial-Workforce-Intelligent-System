@@ -1,14 +1,8 @@
 import { NextResponse } from 'next/server';
 import { db } from '@/lib/db';
+import { callAIWithFallback } from '@/lib/ai-provider';
 
-const GROQ_API_KEY = process.env.GROQ_API_KEY || process.env.groq_api_key;
-const GROQ_MODEL = 'llama-3.3-70b-specdec';
-
-async function fetchGroqBriefing(deptName: string, date: string, scheduled: number, predicted: number, attendanceRate: number) {
-  if (!GROQ_API_KEY) {
-    return `AI Summary unavailable (no Groq key configured). Scheduled: ${scheduled}, Predicted: ${predicted} (${Math.round(attendanceRate * 100)}% attendance rate).`;
-  }
-
+async function fetchForecastBriefing(deptName: string, date: string, scheduled: number, predicted: number, attendanceRate: number) {
   const prompt = `
 You are an expert AI Workforce Operations Analyst. Write a highly concise, professional, and action-oriented staffing briefing for the manager of the "${deptName}" department for the date: ${date}.
 Data:
@@ -23,32 +17,9 @@ Instructions:
 4. Do not include any greeting or conversational filler. Start directly with the operational status.
 `;
 
-  try {
-    const response = await fetch('https://api.groq.com/openai/v1/chat/completions', {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-        'Authorization': `Bearer ${GROQ_API_KEY}`,
-      },
-      body: JSON.stringify({
-        model: GROQ_MODEL,
-        messages: [{ role: 'user', content: prompt }],
-        temperature: 0.5,
-        max_tokens: 150,
-      }),
-    });
+  const result = await callAIWithFallback({ prompt, temperature: 0.5, maxTokens: 150 });
 
-    if (!response.ok) {
-      const errorText = await response.text();
-      throw new Error(`Groq API returned status ${response.status}: ${errorText}`);
-    }
-
-    const data = await response.json();
-    return data.choices[0].message.content.trim();
-  } catch (error: any) {
-    console.error('Groq briefing API error:', error);
-    return `Operational Alert: The ${deptName} shift for ${date} is forecast at ${predicted}/${scheduled} active headcount (${Math.round(attendanceRate * 100)}% historical attendance). Consider activating standby cover.`;
-  }
+  return result || `Operational Alert: The ${deptName} shift for ${date} is forecast at ${predicted}/${scheduled} active headcount (${Math.round(attendanceRate * 100)}% historical attendance). Consider activating standby cover.`;
 }
 
 export async function GET(request: Request) {
@@ -133,7 +104,7 @@ export async function POST(request: Request) {
       const predictedHeadcount = Math.max(0, Math.round(scheduledCount * attendanceRate));
 
       // 5. Generate AI Briefing narrative
-      const aiBriefingText = await fetchGroqBriefing(
+      const aiBriefingText = await fetchForecastBriefing(
         dept.name,
         targetDate,
         scheduledCount,

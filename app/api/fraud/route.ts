@@ -1,8 +1,6 @@
 import { NextResponse } from 'next/server';
 import { db } from '@/lib/db';
-
-const GROQ_API_KEY = process.env.GROQ_API_KEY || process.env.groq_api_key;
-const GROQ_MODEL = 'llama-3.3-70b-specdec';
+import { callAIWithFallback } from '@/lib/ai-provider';
 
 // Factory GPS Coordinates
 const FACTORY_LAT = 23.8103;
@@ -23,12 +21,8 @@ function haversineDistance(lat1: number, lon1: number, lat2: number, lon2: numbe
   return R * c;
 }
 
-// Generate natural language digest of flags using Groq
-async function fetchGroqFraudDigest(flagCount: number, flagsSummary: string) {
-  if (!GROQ_API_KEY) {
-    return `AI Summary unavailable. There are ${flagCount} pending operational anomalies flagged for HR review.`;
-  }
-
+// Generate natural language digest of flags using AI (Groq -> Gemini fallback)
+async function fetchFraudDigest(flagCount: number, flagsSummary: string) {
   const prompt = `
 You are an expert Forensic HR Auditor. Write a brief summary digest of the workforce anomalies flagged this week.
 Anomalies detected:
@@ -41,32 +35,9 @@ Instructions:
 4. Do not include greetings or boilerplate.
 `;
 
-  try {
-    const response = await fetch('https://api.groq.com/openai/v1/chat/completions', {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-        'Authorization': `Bearer ${GROQ_API_KEY}`,
-      },
-      body: JSON.stringify({
-        model: GROQ_MODEL,
-        messages: [{ role: 'user', content: prompt }],
-        temperature: 0.4,
-        max_tokens: 150,
-      }),
-    });
+  const result = await callAIWithFallback({ prompt, temperature: 0.4, maxTokens: 150 });
 
-    if (!response.ok) {
-      const errText = await response.text();
-      throw new Error(`Groq Fraud API status ${response.status}: ${errText}`);
-    }
-
-    const data = await response.json();
-    return data.choices[0].message.content.trim();
-  } catch (error: any) {
-    console.error('Groq fraud digest error:', error);
-    return `Operational Digest: ${flagCount} items require review. Location checks indicate isolated GPS offsets; standard overtime checks show outliers in line baselines.`;
-  }
+  return result || `Operational Digest: ${flagCount} items require review. Location checks indicate isolated GPS offsets; standard overtime checks show outliers in line baselines.`;
 }
 
 export async function GET() {
@@ -211,7 +182,7 @@ export async function POST(request: Request) {
 
     if (totalFlagsCreated > 0) {
       const summaryString = flagsListForDigest.join('\n');
-      aiDigestText = await fetchGroqFraudDigest(totalFlagsCreated, summaryString);
+      aiDigestText = await fetchFraudDigest(totalFlagsCreated, summaryString);
 
       // Save AI digest text on the newly created flags
       await db.query(

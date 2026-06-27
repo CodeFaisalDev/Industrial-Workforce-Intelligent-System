@@ -10,6 +10,7 @@ import {
   Camera, ScanFace, CheckCircle2, AlertTriangle, Wifi, WifiOff, 
   MapPin, ShieldAlert, BadgeCheck, Clock, User
 } from 'lucide-react';
+import { savePunch, getUnsyncedPunches, markPunchSynced, clearSyncedPunches, getUnsyncedCount } from '@/lib/kiosk-db';
 
 export default function KioskMode() {
   const [employees, setEmployees] = useState<any[]>([]);
@@ -42,12 +43,18 @@ export default function KioskMode() {
 
   useEffect(() => {
     fetchEmployees();
-    // Load any pending offline logs from localStorage
-    const saved = localStorage.getItem('kiosk_offline_punches');
-    if (saved) {
-      setOfflineLogs(JSON.parse(saved));
-    }
+    // Load pending offline count from IndexedDB
+    loadOfflineCount();
   }, []);
+
+  const loadOfflineCount = async () => {
+    try {
+      const punches = await getUnsyncedPunches();
+      setOfflineLogs(punches);
+    } catch (err) {
+      console.error('Failed to load offline punches from IndexedDB:', err);
+    }
+  };
 
   // Sync offline logs when connection is restored
   useEffect(() => {
@@ -118,20 +125,27 @@ export default function KioskMode() {
     };
 
     if (offlineMode) {
-      // Cache punch log locally in offline mode
+      // Cache punch log locally in IndexedDB for offline mode
       const emp = employees.find(e => e.id === parseInt(selectedEmpId));
-      const logItem = {
-        ...punchPayload,
-        employee_name: emp?.name || 'Worker',
-        timestamp: new Date().toISOString(),
-      };
-      const updated = [...offlineLogs, logItem];
-      setOfflineLogs(updated);
-      localStorage.setItem('kiosk_offline_punches', JSON.stringify(updated));
+      try {
+        await savePunch({
+          employee_id: parseInt(selectedEmpId),
+          employee_name: emp?.name || 'Worker',
+          timestamp: new Date().toISOString(),
+          log_type: logType,
+          confidence: 0.96,
+          gps_lat: lat,
+          gps_lng: lng,
+          synced: 0,
+        });
+        await loadOfflineCount();
+      } catch (err) {
+        console.error('Failed to save offline punch to IndexedDB:', err);
+      }
       
       setVerificationResult({
         success: true,
-        message: `${logType} recorded locally (Offline Cache)!`,
+        message: `${logType} recorded locally (IndexedDB Offline Cache)!`,
         employee_name: emp?.name,
         geofence_ok: !simulateOffsite,
         geofence_distance_m: simulateOffsite ? 250 : 2,
@@ -160,25 +174,41 @@ export default function KioskMode() {
   };
 
   const syncOfflineLogs = async () => {
-    console.log('Online connection restored. Syncing cached kiosk logs to Neon...');
-    const logsToSync = [...offlineLogs];
-    
-    // Clear state/localStorage immediately to prevent duplicate runs
-    setOfflineLogs([]);
-    localStorage.removeItem('kiosk_offline_punches');
+    console.log('Online connection restored. Syncing cached kiosk logs from IndexedDB to Neon...');
+    try {
+      const logsToSync = await getUnsyncedPunches();
+      if (logsToSync.length === 0) return;
 
-    for (const log of logsToSync) {
-      try {
-        await fetch('/api/attendance', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify(log)
-        });
-      } catch (err) {
-        console.error('Failed to sync log item:', log, err);
+      for (const log of logsToSync) {
+        try {
+          await fetch('/api/attendance', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+              employee_id: log.employee_id,
+              log_type: log.log_type,
+              gps_lat: log.gps_lat,
+              gps_lng: log.gps_lng,
+              verified_by_face: true,
+              device_id: 'kiosk_main_entrance',
+              device_type: 'Kiosk',
+              confidence_score: log.confidence,
+            })
+          });
+          if (log.id) {
+            await markPunchSynced(log.id);
+          }
+        } catch (err) {
+          console.error('Failed to sync log item:', log, err);
+        }
       }
+
+      await clearSyncedPunches();
+      await loadOfflineCount();
+      alert('Synchronized all cached offline logs to database successfully!');
+    } catch (err) {
+      console.error('Failed to sync offline logs:', err);
     }
-    alert('Synchronized all cached offline logs to database successfully!');
   };
 
   const handleResetKiosk = () => {

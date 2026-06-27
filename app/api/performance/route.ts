@@ -1,20 +1,14 @@
 import { NextResponse } from 'next/server';
 import { db } from '@/lib/db';
+import { callAIWithFallback } from '@/lib/ai-provider';
 
-const GROQ_API_KEY = process.env.GROQ_API_KEY || process.env.groq_api_key;
-const GROQ_MODEL = 'llama-3.3-70b-specdec';
-
-async function fetchGroqPerformanceSummary(
+async function fetchPerformanceSummary(
   empName: string,
   punctuality: number,
   adherence: number,
   overtimeHours: number,
   composite: number
 ) {
-  if (!GROQ_API_KEY) {
-    return `AI Summary unavailable. Composite Score: ${Math.round(composite)}% (Punctuality: ${Math.round(punctuality)}%, Adherence: ${Math.round(adherence)}%, Overtime: ${overtimeHours} hrs).`;
-  }
-
   const prompt = `
 You are an expert HR Performance Analyst. Write a brief, objective, and supportive narrative performance summary for the worker "${empName}" based on this month's stats:
 - Punctuality Score: ${Math.round(punctuality)}% (how often they clock in on time)
@@ -28,32 +22,9 @@ Instructions:
 3. Do not use generic greetings or salutations. Write in third person.
 `;
 
-  try {
-    const response = await fetch('https://api.groq.com/openai/v1/chat/completions', {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-        'Authorization': `Bearer ${GROQ_API_KEY}`,
-      },
-      body: JSON.stringify({
-        model: GROQ_MODEL,
-        messages: [{ role: 'user', content: prompt }],
-        temperature: 0.5,
-        max_tokens: 150,
-      }),
-    });
+  const result = await callAIWithFallback({ prompt, temperature: 0.5, maxTokens: 150 });
 
-    if (!response.ok) {
-      const errText = await response.text();
-      throw new Error(`Groq Performance API returned status ${response.status}: ${errText}`);
-    }
-
-    const data = await response.json();
-    return data.choices[0].message.content.trim();
-  } catch (error: any) {
-    console.error('Groq performance summary error:', error);
-    return `${empName} maintained a composite score of ${Math.round(composite)}% with ${overtimeHours.toFixed(1)} hours of overtime. Attendances are overall consistent.`;
-  }
+  return result || `${empName} maintained a composite score of ${Math.round(composite)}% with ${overtimeHours.toFixed(1)} hours of overtime. Attendance is overall consistent.`;
 }
 
 export async function GET(request: Request) {
@@ -151,7 +122,7 @@ export async function POST(request: Request) {
       const compositeScore = (0.6 * punctualityScore) + (0.4 * adherenceScore);
 
       // 4. Generate AI summary highlights
-      const aiSummaryText = await fetchGroqPerformanceSummary(
+      const aiSummaryText = await fetchPerformanceSummary(
         emp.name,
         punctualityScore,
         adherenceScore,

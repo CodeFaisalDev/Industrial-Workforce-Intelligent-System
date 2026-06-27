@@ -1,6 +1,7 @@
 const fs = require('fs');
 const path = require('path');
 const { Pool } = require('pg');
+const bcrypt = require('bcryptjs');
 
 // Load environment variables from .env.local
 const envPath = path.join(__dirname, '.env.local');
@@ -56,11 +57,17 @@ async function run() {
         id SERIAL PRIMARY KEY,
         name VARCHAR(255) NOT NULL,
         email VARCHAR(255) UNIQUE NOT NULL,
+        password VARCHAR(255),
         role VARCHAR(50) NOT NULL DEFAULT 'Worker',
         department_id INTEGER REFERENCES departments(id) ON DELETE SET NULL,
         status VARCHAR(50) NOT NULL DEFAULT 'Active',
         created_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP
       );
+    `);
+
+    // Ensure password column exists if table was already created
+    await client.query(`
+      ALTER TABLE employees ADD COLUMN IF NOT EXISTS password VARCHAR(255);
     `);
 
     // Shifts Table
@@ -196,6 +203,20 @@ async function run() {
       );
     `);
 
+    // Shift Swaps Table
+    await client.query(`
+      CREATE TABLE IF NOT EXISTS shift_swaps (
+        id SERIAL PRIMARY KEY,
+        employee_id INTEGER NOT NULL REFERENCES employees(id) ON DELETE CASCADE,
+        employee_name VARCHAR(255) NOT NULL,
+        date VARCHAR(100) NOT NULL,
+        shift VARCHAR(100) NOT NULL,
+        reason TEXT NOT NULL,
+        status VARCHAR(50) NOT NULL DEFAULT 'Pending',
+        created_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP
+      );
+    `);
+
     console.log('Tables created. Checking and seeding initial data...');
 
     // Seed Departments
@@ -207,6 +228,10 @@ async function run() {
 
     // Seed Employees
     const empCount = await client.query('SELECT COUNT(*) FROM employees');
+    const kafiHash = bcrypt.hashSync('admin123', 10);
+    const managerHash = bcrypt.hashSync('manager123', 10);
+    const workerHash = bcrypt.hashSync('worker123', 10);
+
     if (parseInt(empCount.rows[0].count, 10) === 0) {
       console.log('Seeding employees...');
       const assemblyDept = await client.query("SELECT id FROM departments WHERE name = 'Assembly Line 1'");
@@ -215,20 +240,35 @@ async function run() {
       const maintenanceDept = await client.query("SELECT id FROM departments WHERE name = 'Maintenance & Logistics'");
 
       const employees = [
-        ['Kafi Ahmed', 'kafi@factory.com', 'HR Admin', null],
-        ['Nazmul Hasan', 'nazmul@factory.com', 'Floor Manager', assemblyDept.rows[0].id],
-        ['Faria Sultana', 'faria@factory.com', 'Worker', assemblyDept.rows[0].id],
-        ['Abir Rahman', 'abir@factory.com', 'Worker', packagingDept.rows[0].id],
-        ['Sadia Jahan', 'sadia@factory.com', 'Worker', qaDept.rows[0].id],
-        ['Robiul Islam', 'robi@factory.com', 'Worker', maintenanceDept.rows[0].id],
+        ['Kafi Ahmed', 'admin@gmail.com', 'HR Admin', null, kafiHash],
+        ['Nazmul Hasan', 'manager@gmail.com', 'Floor Manager', assemblyDept.rows[0].id, managerHash],
+        ['Faria Sultana', 'worker@gmail.com', 'Worker', assemblyDept.rows[0].id, workerHash],
+        ['Abir Rahman', 'abir@factory.com', 'Worker', packagingDept.rows[0].id, workerHash],
+        ['Sadia Jahan', 'sadia@factory.com', 'Worker', qaDept.rows[0].id, workerHash],
+        ['Robiul Islam', 'robi@factory.com', 'Worker', maintenanceDept.rows[0].id, workerHash],
       ];
 
-      for (const [name, email, role, deptId] of employees) {
+      for (const [name, email, role, deptId, passwordVal] of employees) {
         await client.query(
-          'INSERT INTO employees (name, email, role, department_id, status) VALUES ($1, $2, $3, $4, $5)',
-          [name, email, role, deptId, 'Active']
+          'INSERT INTO employees (name, email, role, department_id, status, password) VALUES ($1, $2, $3, $4, $5, $6)',
+          [name, email, role, deptId, 'Active', passwordVal]
         );
       }
+    } else {
+      // Update emails and passwords for existing employees to ensure they match request
+      console.log('Updating emails and passwords for existing employees in migrate.js...');
+      await client.query(`
+        UPDATE employees SET email = 'admin@gmail.com', password = $1 WHERE role = 'HR Admin';
+      `, [kafiHash]);
+      await client.query(`
+        UPDATE employees SET email = 'manager@gmail.com', password = $1 WHERE role = 'Floor Manager';
+      `, [managerHash]);
+      await client.query(`
+        UPDATE employees SET email = 'worker@gmail.com', password = $1 WHERE name = 'Faria Sultana';
+      `, [workerHash]);
+      await client.query(`
+        UPDATE employees SET password = $1 WHERE password IS NULL OR password = '';
+      `, [workerHash]);
     }
 
     // Seed Policies
@@ -311,6 +351,19 @@ async function run() {
             );
           }
         }
+      }
+    }
+
+    // Seed shift swap requests if empty
+    const swapCount = await client.query('SELECT COUNT(*) FROM shift_swaps');
+    if (parseInt(swapCount.rows[0].count, 10) === 0) {
+      console.log('Seeding initial shift swap request in migrate.js...');
+      const faria = await client.query("SELECT id FROM employees WHERE email = 'worker@gmail.com'");
+      if (faria.rows.length > 0) {
+        await client.query(`
+          INSERT INTO shift_swaps (employee_id, employee_name, date, shift, reason, status)
+          VALUES ($1, 'Faria Sultana', 'Tomorrow', 'Day Shift', 'Family engagement', 'Pending')
+        `, [faria.rows[0].id]);
       }
     }
 

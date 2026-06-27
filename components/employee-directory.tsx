@@ -26,6 +26,7 @@ export default function EmployeeDirectory() {
   const [email, setEmail] = useState('');
   const [role, setRole] = useState('Worker');
   const [deptId, setDeptId] = useState('');
+  const [password, setPassword] = useState('');
   const [isAddOpen, setIsAddOpen] = useState(false);
 
   // Face Enrollment states
@@ -95,13 +96,14 @@ export default function EmployeeDirectory() {
       const res = await fetch('/api/employees', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ name, email, role, department_id: deptId ? parseInt(deptId) : null }),
+        body: JSON.stringify({ name, email, role, department_id: deptId ? parseInt(deptId) : null, password }),
       });
       const data = await res.json();
       if (data.success) {
         setIsAddOpen(false);
         setName('');
         setEmail('');
+        setPassword('');
         setRole('Worker');
         setDeptId('');
         fetchData();
@@ -233,6 +235,10 @@ export default function EmployeeDirectory() {
               <div className="space-y-1">
                 <Label htmlFor="email" className="text-xs font-semibold">Email Address</Label>
                 <Input id="email" type="email" value={email} onChange={(e) => setEmail(e.target.value)} placeholder="faria@factory.com" className="text-xs" required />
+              </div>
+              <div className="space-y-1">
+                <Label htmlFor="passwordInput" className="text-xs font-semibold">Login Password</Label>
+                <Input id="passwordInput" type="password" value={password} onChange={(e) => setPassword(e.target.value)} placeholder="Enter password (e.g. worker123)" className="text-xs" required />
               </div>
               <div className="grid grid-cols-2 gap-4">
                 <div className="space-y-1">
