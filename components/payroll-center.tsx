@@ -12,9 +12,11 @@ import { DollarSign, Printer, Calculator, FileText, CheckCircle2, TrendingUp } f
 
 interface PayrollProps {
   role: string;
+  userId: string;
+  userName: string;
 }
 
-export default function PayrollCenter({ role }: PayrollProps) {
+export default function PayrollCenter({ role, userId, userName }: PayrollProps) {
   const [payrollList, setPayrollList] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
   const [computing, setComputing] = useState(false);
@@ -33,9 +35,7 @@ export default function PayrollCenter({ role }: PayrollProps) {
       // Fetch payroll list
       let url = '/api/payroll';
       if (role === 'Worker') {
-        // Find employee id for Faria Sultana (Worker) from seed employees
-        // Since Faria is seeded, we can filter client-side or pass employee_id = 3
-        url = '/api/payroll?employee_id=3'; // Hardcoded Faria Sultana ID for demo
+        url = `/api/payroll?employee_id=${userId}`;
       }
       const res = await fetch(url);
       const data = await res.json();

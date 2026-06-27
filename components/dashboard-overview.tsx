@@ -28,6 +28,23 @@ export default function DashboardOverview({ role }: OverviewProps) {
   const [flags, setFlags] = useState<any[]>([]);
   const [generatingForecast, setGeneratingForecast] = useState(false);
 
+  const [chartData, setChartData] = useState<any[]>([
+    { name: 'Mon', Scheduled: 4, Attended: 4 },
+    { name: 'Tue', Scheduled: 4, Attended: 3 },
+    { name: 'Wed', Scheduled: 5, Attended: 4 },
+    { name: 'Thu', Scheduled: 4, Attended: 4 },
+    { name: 'Fri', Scheduled: 4, Attended: 4 },
+    { name: 'Sat', Scheduled: 3, Attended: 3 },
+    { name: 'Sun', Scheduled: 2, Attended: 2 },
+  ]);
+
+  const [payPeriodTrends, setPayPeriodTrends] = useState<any[]>([
+    { name: 'Period 1', GrossPay: 600, OvertimePay: 90 },
+    { name: 'Period 2', GrossPay: 630, OvertimePay: 120 },
+    { name: 'Period 3', GrossPay: 580, OvertimePay: 45 },
+    { name: 'Period 4', GrossPay: 690, OvertimePay: 180 },
+  ]);
+
   // Fetch metrics and forecasts
   const fetchData = async () => {
     try {
@@ -37,11 +54,16 @@ export default function DashboardOverview({ role }: OverviewProps) {
       const attData = await attRes.json();
       const logs = attData.logs || [];
 
-      // Fetch today's shifts
+      // Fetch all shifts
+      const allShiftsRes = await fetch('/api/shifts');
+      const allShiftsData = await allShiftsRes.json();
+      const allShifts = allShiftsData.shifts || [];
+
+      // Fetch today's date
       const todayStr = new Date().toISOString().split('T')[0];
-      const shiftsRes = await fetch(`/api/forecast?date=${todayStr}`);
-      const shiftsData = await shiftsRes.json();
-      const todayForecasts = shiftsData.forecasts || [];
+
+      // Calculate totalScheduled for today (Scheduled or Completed status)
+      const todayScheduled = allShifts.filter((s: any) => s.date.split('T')[0] === todayStr && (s.status === 'Scheduled' || s.status === 'Completed')).length;
 
       // Fetch tomorrow's forecast
       const tomorrow = new Date(Date.now() + 24 * 60 * 60 * 1000).toISOString().split('T')[0];
@@ -60,13 +82,67 @@ export default function DashboardOverview({ role }: OverviewProps) {
 
       setMetrics({
         activeCount: uniqueActive.size,
-        totalScheduled: 4, // Default mock base schedule
+        totalScheduled: todayScheduled || 4, // Seed fallback if zero
         completedShifts: completed,
         fraudFlagsCount: fraudFlags.filter((f: any) => f.status === 'Pending').length,
       });
 
       setForecast(tomorrowForecast);
       setFlags(fraudFlags.slice(0, 3)); // show top 3 latest flags
+
+      // 1. Calculate dynamic attendance weekly trends (last 7 days)
+      const dayNames = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
+      const last7Days = Array.from({ length: 7 }, (_, i) => {
+        const d = new Date();
+        d.setDate(d.getDate() - (6 - i));
+        return d;
+      });
+
+      const dynamicChartData = last7Days.map(date => {
+        const dateStr = date.toISOString().split('T')[0];
+        const dayLabel = dayNames[date.getDay()];
+        
+        const dayShifts = allShifts.filter((s: any) => s.date.split('T')[0] === dateStr);
+        const scheduled = dayShifts.filter((s: any) => s.status === 'Scheduled' || s.status === 'Completed').length;
+        const attended = dayShifts.filter((s: any) => s.status === 'Completed').length;
+        
+        return {
+          name: dayLabel,
+          Scheduled: scheduled || 1, // baseline
+          Attended: attended || 1
+        };
+      });
+      setChartData(dynamicChartData);
+
+      // 2. Calculate dynamic payroll ledger trends
+      const payRes = await fetch('/api/payroll');
+      const payData = await payRes.json();
+      const payrollList = payData.payroll || [];
+
+      const periodMap: Record<string, { name: string; GrossPay: number; OvertimePay: number }> = {};
+      
+      payrollList.forEach((p: any) => {
+        const dateObj = new Date(p.period_start);
+        const monthName = dateObj.toLocaleDateString('en-US', { month: 'short' });
+        const label = `${monthName} Cycle`;
+        
+        if (!periodMap[label]) {
+          periodMap[label] = { name: label, GrossPay: 0, OvertimePay: 0 };
+        }
+        
+        const gross = parseFloat(p.gross_pay) || 0;
+        const overtimeHours = parseFloat(p.overtime_hours) || 0;
+        const rate = p.employee_role === 'HR Admin' ? 30 : p.employee_role === 'Floor Manager' ? 25 : 15;
+        const otPay = overtimeHours * rate * 1.5;
+        
+        periodMap[label].GrossPay += Math.round(gross);
+        periodMap[label].OvertimePay += Math.round(otPay);
+      });
+
+      const dynamicPayTrends = Object.values(periodMap).reverse().slice(0, 4).reverse();
+      if (dynamicPayTrends.length > 0) {
+        setPayPeriodTrends(dynamicPayTrends);
+      }
     } catch (error) {
       console.error('Error fetching dashboard overview data:', error);
     } finally {
@@ -97,24 +173,6 @@ export default function DashboardOverview({ role }: OverviewProps) {
       setGeneratingForecast(false);
     }
   };
-
-  // Mock chart data representing recent shift trends
-  const chartData = [
-    { name: 'Mon', Scheduled: 4, Attended: 4 },
-    { name: 'Tue', Scheduled: 4, Attended: 3 },
-    { name: 'Wed', Scheduled: 5, Attended: 4 },
-    { name: 'Thu', Scheduled: 4, Attended: 4 },
-    { name: 'Fri', Scheduled: 4, Attended: 4 },
-    { name: 'Sat', Scheduled: 3, Attended: 3 },
-    { name: 'Sun', Scheduled: 2, Attended: 2 },
-  ];
-
-  const payPeriodTrends = [
-    { name: 'Period 1', GrossPay: 600, OvertimePay: 90 },
-    { name: 'Period 2', GrossPay: 630, OvertimePay: 120 },
-    { name: 'Period 3', GrossPay: 580, OvertimePay: 45 },
-    { name: 'Period 4', GrossPay: 690, OvertimePay: 180 },
-  ];
 
   return (
     <div className="space-y-8 animate-in fade-in slide-in-from-bottom-4 duration-500">

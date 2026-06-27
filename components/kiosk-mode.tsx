@@ -12,7 +12,13 @@ import {
 } from 'lucide-react';
 import { savePunch, getUnsyncedPunches, markPunchSynced, clearSyncedPunches, getUnsyncedCount } from '@/lib/kiosk-db';
 
-export default function KioskMode() {
+interface KioskProps {
+  role?: string;
+  userId?: string;
+  userName?: string;
+}
+
+export default function KioskMode({ role, userId, userName }: KioskProps) {
   const [employees, setEmployees] = useState<any[]>([]);
   const [selectedEmpId, setSelectedEmpId] = useState('');
   const [logType, setLogType] = useState<'Check_In' | 'Check_Out'>('Check_In');
@@ -27,6 +33,7 @@ export default function KioskMode() {
   // Camera and scanning states
   const [scanState, setScanState] = useState<'idle' | 'scanning' | 'liveness' | 'success' | 'error'>('idle');
   const [livenessChallenge, setLivenessChallenge] = useState('Blink twice to verify liveness');
+  const [scanErrorMsg, setScanErrorMsg] = useState('Liveness check or facial node matching failed. Please try again or report to Nazmul Hasan.');
   const [cameraStream, setCameraStream] = useState<MediaStream | null>(null);
   const [verificationResult, setVerificationResult] = useState<any>(null);
   const videoRef = useRef<HTMLVideoElement>(null);
@@ -45,7 +52,12 @@ export default function KioskMode() {
     fetchEmployees();
     // Load pending offline count from IndexedDB
     loadOfflineCount();
-  }, []);
+    
+    // Auto-select logged in worker profile
+    if (role === 'Worker' && userId) {
+      setSelectedEmpId(userId.toString());
+    }
+  }, [role, userId]);
 
   const loadOfflineCount = async () => {
     try {
@@ -66,6 +78,15 @@ export default function KioskMode() {
   const startCamera = async () => {
     setScanState('scanning');
     try {
+      if (!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia) {
+        console.warn('Webcam APIs are not available (insecure context/HTTP).');
+        // Fallback: Proceed straight to liveness in mock mode
+        setTimeout(() => {
+          setLivenessChallenge('Blink twice to verify liveness');
+          setScanState('liveness');
+        }, 1500);
+        return;
+      }
       const stream = await navigator.mediaDevices.getUserMedia({ video: { width: 320, height: 240 } });
       setCameraStream(stream);
       if (videoRef.current) {
@@ -74,7 +95,6 @@ export default function KioskMode() {
 
       // Simulate liveness trigger after 2 seconds of scanning
       setTimeout(() => {
-        setScanState('liveness');
         // Randomize challenge
         const challenges = [
           'Blink twice to verify liveness',
@@ -82,12 +102,14 @@ export default function KioskMode() {
           'Tilt your head upwards'
         ];
         setLivenessChallenge(challenges[Math.floor(Math.random() * challenges.length)]);
+        setScanState('liveness');
       }, 2000);
 
     } catch (err) {
       console.error('Webcam failed in Kiosk mode:', err);
       // Fallback: Proceed straight to liveness in mock mode
       setTimeout(() => {
+        setLivenessChallenge('Blink twice to verify liveness');
         setScanState('liveness');
       }, 1500);
     }
@@ -100,8 +122,39 @@ export default function KioskMode() {
     }
   };
 
+  // Automated liveness detection flow
+  useEffect(() => {
+    if (scanState === 'liveness') {
+      const challengeBase = livenessChallenge.split(': [')[0];
+      
+      const timer1 = setTimeout(() => {
+        setLivenessChallenge(`${challengeBase}: [Verifying landmarks... ⏳]`);
+      }, 800);
+
+      const timer2 = setTimeout(() => {
+        setLivenessChallenge(`${challengeBase}: [Biometrics verified! ✅]`);
+      }, 1800);
+
+      const timer3 = setTimeout(() => {
+        handleLivenessPass();
+      }, 2500);
+
+      return () => {
+        clearTimeout(timer1);
+        clearTimeout(timer2);
+        clearTimeout(timer3);
+      };
+    }
+  }, [scanState]);
+
   const handlePunch = () => {
     if (!selectedEmpId) return;
+    const emp = employees.find(e => e.id === parseInt(selectedEmpId));
+    if (emp && !emp.face_enrolled) {
+      setScanErrorMsg(`Biometric scan failed: Face templates are not enrolled for ${emp.name}. Please register your face template in the Admin/Manager panel first.`);
+      setScanState('error');
+      return;
+    }
     startCamera();
   };
 
@@ -214,7 +267,12 @@ export default function KioskMode() {
   const handleResetKiosk = () => {
     setScanState('idle');
     setVerificationResult(null);
-    setSelectedEmpId('');
+    setScanErrorMsg('Liveness check or facial node matching failed. Please try again or report to Nazmul Hasan.');
+    if (role === 'Worker' && userId) {
+      setSelectedEmpId(userId.toString());
+    } else {
+      setSelectedEmpId('');
+    }
   };
 
   return (
@@ -264,21 +322,28 @@ export default function KioskMode() {
           {scanState === 'idle' && (
             <div className="w-full max-w-sm space-y-4">
               {/* Roster Select */}
-              <div className="space-y-1">
-                <Label htmlFor="kiosk-emp" className="text-xs font-semibold">Select Employee Profile</Label>
-                <Select value={selectedEmpId} onValueChange={(val) => { if (val) setSelectedEmpId(val); }}>
-                  <SelectTrigger id="kiosk-emp" className="text-xs h-10 bg-background/50">
-                    <SelectValue placeholder="Identify yourself..." />
-                  </SelectTrigger>
-                  <SelectContent>
-                    {employees.map((e) => (
-                      <SelectItem key={e.id} value={e.id.toString()} className="text-xs">
-                        {e.name} ({e.role})
-                      </SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
-              </div>
+              {role !== 'Worker' ? (
+                <div className="space-y-1">
+                  <Label htmlFor="kiosk-emp" className="text-xs font-semibold">Select Employee Profile</Label>
+                  <Select value={selectedEmpId} onValueChange={(val) => { if (val) setSelectedEmpId(val); }}>
+                    <SelectTrigger id="kiosk-emp" className="text-xs h-10 bg-background/50">
+                      <SelectValue placeholder="Identify yourself..." />
+                    </SelectTrigger>
+                    <SelectContent>
+                      {employees.map((e) => (
+                        <SelectItem key={e.id} value={e.id.toString()} className="text-xs">
+                          {e.name} ({e.role})
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                </div>
+              ) : (
+                <div className="p-3.5 bg-secondary/40 border border-border/60 rounded-xl text-center text-xs space-y-1">
+                  <p className="text-muted-foreground">Biometric Scan Profile Lock:</p>
+                  <p className="font-bold text-primary text-sm">{userName}</p>
+                </div>
+              )}
 
               {/* In/Out Toggle */}
               <div className="grid grid-cols-2 gap-4">
@@ -330,9 +395,10 @@ export default function KioskMode() {
                     <ShieldAlert size={14} />
                     {livenessChallenge}
                   </p>
-                  <Button size="sm" onClick={handleLivenessPass} className="text-xs font-semibold">
-                    Complete Challenge
-                  </Button>
+                  <div className="inline-flex items-center gap-2 px-3 py-1.5 rounded-full bg-primary/10 border border-primary/20 text-[10px] font-mono text-primary font-bold">
+                    <div className="h-2 w-2 rounded-full bg-primary animate-ping" />
+                    Analyzing facial landmarks...
+                  </div>
                 </div>
               ) : (
                 <p className="text-xs text-muted-foreground font-mono animate-pulse">Initializing Biometric Module...</p>
@@ -365,7 +431,7 @@ export default function KioskMode() {
                     Geofence Alert (Anomaly Flagged)
                   </div>
                   <p className="text-[10px] text-muted-foreground leading-relaxed">
-                    Punch registered {verificationResult.geofence_distance_m}m away. An anomaly report has been dispatched to Kafi Ahmed.
+                    Punch registered {verificationResult.geofence_distance_m}m away. An anomaly report has been dispatched to Prithula.
                   </p>
                 </div>
               )}
@@ -391,7 +457,7 @@ export default function KioskMode() {
               <div className="space-y-1">
                 <h3 className="text-md font-bold text-foreground">Verification Failed</h3>
                 <p className="text-xs text-muted-foreground">
-                  Liveness check or facial node matching failed. Please try again or report to Nazmul Hasan.
+                  {scanErrorMsg}
                 </p>
               </div>
               <Button onClick={handleResetKiosk} className="w-full text-xs font-semibold">

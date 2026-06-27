@@ -7,8 +7,19 @@ const ROLE_HOURLY_RATES: Record<string, number> = {
   'Worker': 15,
 };
 
+import { getServerSession } from 'next-auth';
+import { authOptions } from '../auth/[...nextauth]/route';
+
 export async function GET(request: Request) {
   try {
+    const session = await getServerSession(authOptions);
+    if (!session) {
+      return NextResponse.json({ success: false, error: 'Unauthorized' }, { status: 401 });
+    }
+
+    const userId = (session.user as any).id;
+    const role = (session.user as any).role;
+
     const { searchParams } = new URL(request.url);
     const employeeId = searchParams.get('employee_id');
 
@@ -20,9 +31,27 @@ export async function GET(request: Request) {
     `;
     const params: any[] = [];
 
-    if (employeeId) {
-      query += ` WHERE p.employee_id = $1`;
-      params.push(employeeId);
+    if (role === 'Floor Manager') {
+      query += `
+        INNER JOIN manager_worker_access mwa ON e.id = mwa.worker_id
+        WHERE mwa.manager_id = $1
+      `;
+      params.push(userId);
+      if (employeeId) {
+        query += ` AND p.employee_id = $2`;
+        params.push(employeeId);
+      }
+    } else if (role === 'Worker') {
+      query += `
+        WHERE p.employee_id = $1
+      `;
+      params.push(userId);
+    } else {
+      // HR Admin
+      if (employeeId) {
+        query += ` WHERE p.employee_id = $1`;
+        params.push(employeeId);
+      }
     }
 
     query += ` ORDER BY p.period_start DESC, e.name ASC`;

@@ -189,6 +189,16 @@ export async function initDatabase() {
     );
   `);
 
+  // Manager Worker Access Table (defines manager access override)
+  await db.query(`
+    CREATE TABLE IF NOT EXISTS manager_worker_access (
+      id SERIAL PRIMARY KEY,
+      manager_id INTEGER NOT NULL REFERENCES employees(id) ON DELETE CASCADE,
+      worker_id INTEGER NOT NULL REFERENCES employees(id) ON DELETE CASCADE,
+      UNIQUE(manager_id, worker_id)
+    );
+  `);
+
   console.log('All database tables verified/created.');
 
   // 3. Seed initial mock data if tables are empty
@@ -212,42 +222,17 @@ export async function initDatabase() {
   const workerHash = bcrypt.hashSync('worker123', 10);
 
   if (parseInt(empCount.rows[0].count, 10) === 0) {
-    console.log('Seeding initial employees...');
-    const assemblyDept = await db.query("SELECT id FROM departments WHERE name = 'Assembly Line 1'");
-    const packagingDept = await db.query("SELECT id FROM departments WHERE name = 'Packaging & Sorting'");
-    const qaDept = await db.query("SELECT id FROM departments WHERE name = 'Quality Assurance'");
-    const maintenanceDept = await db.query("SELECT id FROM departments WHERE name = 'Maintenance & Logistics'");
-
-    const employees = [
-      ['Kafi Ahmed', 'admin@gmail.com', 'HR Admin', null, kafiHash],
-      ['Nazmul Hasan', 'manager@gmail.com', 'Floor Manager', assemblyDept.rows[0].id, managerHash],
-      ['Faria Sultana', 'worker@gmail.com', 'Worker', assemblyDept.rows[0].id, workerHash],
-      ['Abir Rahman', 'abir@factory.com', 'Worker', packagingDept.rows[0].id, workerHash],
-      ['Sadia Jahan', 'sadia@factory.com', 'Worker', qaDept.rows[0].id, workerHash],
-      ['Robiul Islam', 'robi@factory.com', 'Worker', maintenanceDept.rows[0].id, workerHash],
-    ];
-
-    for (const [name, email, role, deptId, passwordVal] of employees) {
-      await db.query(
-        'INSERT INTO employees (name, email, role, department_id, status, password) VALUES ($1, $2, $3, $4, $5, $6)',
-        [name, email, role, deptId, 'Active', passwordVal]
-      );
-    }
+    console.log('Seeding initial admin employee...');
+    await db.query(
+      'INSERT INTO employees (name, email, role, department_id, status, password) VALUES ($1, $2, $3, $4, $5, $6)',
+      ['Prithula', 'admin@gmail.com', 'HR Admin', null, 'Active', kafiHash]
+    );
   } else {
     // Update emails and passwords for existing employees to ensure they match request
-    console.log('Updating emails and passwords for existing employees to match new configs...');
+    console.log('Updating emails and passwords for existing admin in init-db.ts...');
     await db.query(`
-      UPDATE employees SET email = 'admin@gmail.com', password = $1 WHERE role = 'HR Admin';
+      UPDATE employees SET name = 'Prithula', email = 'admin@gmail.com', password = $1 WHERE role = 'HR Admin';
     `, [kafiHash]);
-    await db.query(`
-      UPDATE employees SET email = 'manager@gmail.com', password = $1 WHERE role = 'Floor Manager';
-    `, [managerHash]);
-    await db.query(`
-      UPDATE employees SET email = 'worker@gmail.com', password = $1 WHERE name = 'Faria Sultana';
-    `, [workerHash]);
-    await db.query(`
-      UPDATE employees SET password = $1 WHERE password IS NULL OR password = '';
-    `, [workerHash]);
   }
 
   const kbCount = await db.query('SELECT COUNT(*) FROM chatbot_knowledge_base');
@@ -271,7 +256,7 @@ export async function initDatabase() {
         'security_policy.pdf',
       ],
       [
-        'Face recognition is mandatory for attendance check-ins. If recognition fails, workers must report to the Floor Manager (Nazmul Hasan) or HR Admin (Kafi Ahmed) for manual override.',
+        'Face recognition is mandatory for attendance check-ins. If recognition fails, workers must report to the Floor Manager (Nazmul Hasan) or HR Admin (Prithula) for manual override.',
         'attendance_policy.pdf',
       ],
     ];
@@ -336,6 +321,20 @@ export async function initDatabase() {
     }
   }
 
+  // Seed initial face embeddings if empty
+  const faceCount = await db.query('SELECT COUNT(*) FROM face_embeddings');
+  if (parseInt(faceCount.rows[0].count, 10) === 0) {
+    console.log('Seeding initial face embeddings...');
+    const mockVector = '[' + Array(128).fill(0.1).join(',') + ']';
+    const emps = await db.query("SELECT id FROM employees WHERE role IN ('HR Admin', 'Worker')");
+    for (const row of emps.rows) {
+      await db.query(
+        'INSERT INTO face_embeddings (employee_id, embedding, is_active) VALUES ($1, $2, true)',
+        [row.id, mockVector]
+      );
+    }
+  }
+
   // Seed shift swap requests if empty
   const swapCount = await db.query('SELECT COUNT(*) FROM shift_swaps');
   if (parseInt(swapCount.rows[0].count, 10) === 0) {
@@ -346,6 +345,22 @@ export async function initDatabase() {
         INSERT INTO shift_swaps (employee_id, employee_name, date, shift, reason, status)
         VALUES ($1, 'Faria Sultana', 'Tomorrow', 'Day Shift', 'Family engagement', 'Pending')
       `, [faria.rows[0].id]);
+    }
+  }
+  // Seed manager-worker access mappings if empty
+  const accessCount = await db.query('SELECT COUNT(*) FROM manager_worker_access');
+  if (parseInt(accessCount.rows[0].count, 10) === 0) {
+    console.log('Seeding initial manager-worker access mappings...');
+    const manager = await db.query("SELECT id FROM employees WHERE email = 'manager@gmail.com'");
+    if (manager.rows.length > 0) {
+      const workers = await db.query("SELECT id FROM employees WHERE role = 'Worker'");
+      for (const w of workers.rows) {
+        await db.query(`
+          INSERT INTO manager_worker_access (manager_id, worker_id)
+          VALUES ($1, $2)
+          ON CONFLICT DO NOTHING
+        `, [manager.rows[0].id, w.id]);
+      }
     }
   }
 

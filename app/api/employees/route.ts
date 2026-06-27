@@ -1,17 +1,43 @@
 import { NextResponse } from 'next/server';
 import { db } from '@/lib/db';
 import bcrypt from 'bcryptjs';
+import { getServerSession } from 'next-auth';
+import { authOptions } from '../auth/[...nextauth]/route';
 
 export async function GET() {
   try {
-    // 1. Get employees joined with department details
-    const empResult = await db.query(`
+    const session = await getServerSession(authOptions);
+    if (!session) {
+      return NextResponse.json({ success: false, error: 'Unauthorized' }, { status: 401 });
+    }
+
+    const userId = (session.user as any).id;
+    const role = (session.user as any).role;
+
+    // 1. Get employees joined with department details, dynamically restricted by role permissions
+    let empQuery = `
       SELECT e.id, e.name, e.email, e.role, e.department_id, e.status, d.name as department_name,
              EXISTS(SELECT 1 FROM face_embeddings f WHERE f.employee_id = e.id AND f.is_active = true) as face_enrolled
       FROM employees e
       LEFT JOIN departments d ON e.department_id = d.id
-      ORDER BY e.name ASC
-    `);
+    `;
+    const params: any[] = [];
+
+    if (role === 'Floor Manager') {
+      empQuery += `
+        INNER JOIN manager_worker_access mwa ON e.id = mwa.worker_id
+        WHERE mwa.manager_id = $1
+      `;
+      params.push(userId);
+    } else if (role === 'Worker') {
+      empQuery += `
+        WHERE e.id = $1
+      `;
+      params.push(userId);
+    }
+
+    empQuery += ` ORDER BY e.name ASC`;
+    const empResult = await db.query(empQuery, params);
 
     // 2. Get all departments
     const deptResult = await db.query(`

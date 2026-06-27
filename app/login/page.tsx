@@ -3,7 +3,7 @@
 import React, { useState, useEffect, Suspense } from 'react';
 import { signIn, useSession } from 'next-auth/react';
 import { useRouter, useSearchParams } from 'next/navigation';
-import { Terminal, Lock, Mail, AlertCircle, Loader2 } from 'lucide-react';
+import { Terminal, Lock, Mail, AlertCircle, Loader2, Eye, EyeOff } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
@@ -18,6 +18,7 @@ function LoginForm() {
   const [password, setPassword] = useState('');
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
+  const [showPassword, setShowPassword] = useState(false);
 
   // If already logged in, redirect to home page
   useEffect(() => {
@@ -96,9 +97,9 @@ function LoginForm() {
               placeholder="name@factory.com"
               value={email}
               onChange={(e) => setEmail(e.target.value)}
-              className="pl-9 text-xs h-9 bg-secondary/20 focus-visible:bg-secondary/10"
+              className="pl-9 text-xs h-9.5 bg-secondary/10 border-border/80 focus:bg-background/80 focus-visible:ring-1 focus-visible:ring-primary/40 focus-visible:border-primary/50 transition-all rounded-lg"
               required
-                />
+            />
           </div>
         </div>
 
@@ -112,21 +113,28 @@ function LoginForm() {
             <Lock className="absolute left-3 top-2.5 h-4 w-4 text-muted-foreground" />
             <Input
               id="password"
-              type="password"
+              type={showPassword ? 'text' : 'password'}
               placeholder="••••••••"
               value={password}
               onChange={(e) => setPassword(e.target.value)}
-              className="pl-9 text-xs h-9 bg-secondary/20 focus-visible:bg-secondary/10"
+              className="pl-9 pr-10 text-xs h-9.5 bg-secondary/10 border-border/80 focus:bg-background/80 focus-visible:ring-1 focus-visible:ring-primary/40 focus-visible:border-primary/50 transition-all rounded-lg"
               required
             />
+            <button
+              type="button"
+              onClick={() => setShowPassword(!showPassword)}
+              className="absolute right-3 top-2.5 text-muted-foreground hover:text-foreground focus:outline-none transition-colors"
+            >
+              {showPassword ? <EyeOff size={16} /> : <Eye size={16} />}
+            </button>
           </div>
         </div>
       </CardContent>
 
-      <CardFooter className="flex flex-col gap-3 pb-8">
+      <CardFooter className="flex flex-col gap-4 pb-8 px-6">
         <Button
           type="submit"
-          className="w-full text-xs font-semibold h-9 shadow-lg shadow-primary/15 hover:shadow-primary/25 transition-all"
+          className="w-full text-xs font-bold h-9.5 rounded-lg shadow-lg shadow-primary/20 hover:shadow-primary/30 hover:scale-[1.01] active:scale-[0.99] transition-all bg-primary text-primary-foreground"
           disabled={loading}
         >
           {loading ? (
@@ -139,12 +147,21 @@ function LoginForm() {
           )}
         </Button>
 
-        <div className="text-[10px] text-muted-foreground text-center font-mono mt-2">
-          <p>Demo accounts (email / password):</p>
-          <div className="grid grid-cols-3 gap-2 mt-1.5 text-center text-foreground/70">
-            <div className="bg-secondary/40 p-1 rounded text-[9px]">admin@gmail.com / admin123</div>
-            <div className="bg-secondary/40 p-1 rounded text-[9px]">manager@gmail.com / manager123</div>
-            <div className="bg-secondary/40 p-1 rounded text-[9px]">worker@gmail.com / worker123</div>
+        <div className="text-[10px] text-muted-foreground text-center font-sans mt-2 w-full border-t border-border/40 pt-4">
+          <p className="font-semibold text-foreground/75 mb-2">Seeded Demo Access Profiles</p>
+          <div className="grid grid-cols-1 gap-1.5 text-left text-foreground/80">
+            <div className="bg-secondary/40 border border-border/30 hover:border-primary/20 hover:bg-secondary/60 p-2 rounded-lg transition-all flex justify-between items-center font-mono">
+              <span className="font-semibold text-primary">HR Admin:</span>
+              <span>admin@gmail.com / admin123</span>
+            </div>
+            <div className="bg-secondary/40 border border-border/30 hover:border-primary/20 hover:bg-secondary/60 p-2 rounded-lg transition-all flex justify-between items-center font-mono">
+              <span className="font-semibold text-emerald-500 dark:text-emerald-400">Manager:</span>
+              <span>manager@gmail.com / manager123</span>
+            </div>
+            <div className="bg-secondary/40 border border-border/30 hover:border-primary/20 hover:bg-secondary/60 p-2 rounded-lg transition-all flex justify-between items-center font-mono">
+              <span className="font-semibold text-blue-500 dark:text-blue-400">Worker:</span>
+              <span>worker@gmail.com / worker123</span>
+            </div>
           </div>
         </div>
       </CardFooter>

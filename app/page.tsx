@@ -38,20 +38,22 @@ export default function Home() {
     return null; // will redirect to login via useEffect
   }
 
-  const role = (session.user as any).role || 'Worker';
+  const role = (session?.user as any)?.role || 'Worker';
+  const userId = (session?.user as any)?.id;
+  const userName = session?.user?.name || 'Worker';
 
   const renderActiveTab = () => {
     switch (currentTab) {
       case 'overview':
         return <DashboardOverview role={role} />;
       case 'kiosk':
-        return <KioskMode />;
+        return <KioskMode role={role} userId={userId} userName={userName} />;
       case 'employees':
-        return <EmployeeDirectory />;
+        return <EmployeeDirectory role={role} userId={userId} />;
       case 'scheduler':
-        return <ShiftScheduler role={role} />;
+        return <ShiftScheduler role={role} userId={userId} userName={userName} />;
       case 'payroll':
-        return <PayrollCenter role={role} />;
+        return <PayrollCenter role={role} userId={userId} userName={userName} />;
       case 'fraud':
         return <FraudQueue />;
       default:

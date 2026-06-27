@@ -14,9 +14,11 @@ import { useSession } from 'next-auth/react';
 
 interface SchedulerProps {
   role: string;
+  userId?: string;
+  userName?: string;
 }
 
-export default function ShiftScheduler({ role }: SchedulerProps) {
+export default function ShiftScheduler({ role, userId, userName }: SchedulerProps) {
   const { data: session } = useSession();
   const [shifts, setShifts] = useState<any[]>([]);
   const [employees, setEmployees] = useState<any[]>([]);

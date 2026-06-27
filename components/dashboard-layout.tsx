@@ -172,7 +172,7 @@ export default function DashboardLayout({
             {/* Role Switcher replaced with actual Authenticated User Options */}
             <DropdownMenu>
               <DropdownMenuTrigger render={
-                <div className="flex items-center gap-2.5 cursor-pointer bg-secondary/30 hover:bg-secondary/70 p-1.5 pr-3 rounded-lg border border-border transition-colors" />
+                <button type="button" className="flex items-center gap-2.5 cursor-pointer bg-secondary/30 hover:bg-secondary/70 p-1.5 pr-3 rounded-lg border border-border transition-colors text-foreground focus-visible:outline-none" />
               }>
                 <Avatar className="h-7 w-7 rounded-md">
                   <AvatarFallback className="text-xs bg-primary/10 text-primary font-bold">

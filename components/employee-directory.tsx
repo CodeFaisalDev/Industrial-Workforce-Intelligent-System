@@ -16,15 +16,20 @@ import {
   CheckCircle2, XCircle, Award, UserCheck
 } from 'lucide-react';
 
-export default function EmployeeDirectory() {
+interface DirectoryProps {
+  role: string;
+  userId: string;
+}
+
+export default function EmployeeDirectory({ role: userRole, userId }: DirectoryProps) {
   const [employees, setEmployees] = useState<any[]>([]);
   const [departments, setDepartments] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
   
   // Form states
+  const [role, setRole] = useState('Worker');
   const [name, setName] = useState('');
   const [email, setEmail] = useState('');
-  const [role, setRole] = useState('Worker');
   const [deptId, setDeptId] = useState('');
   const [password, setPassword] = useState('');
   const [isAddOpen, setIsAddOpen] = useState(false);
@@ -39,6 +44,12 @@ export default function EmployeeDirectory() {
   // Performance Scorecard state
   const [selectedScorecard, setSelectedScorecard] = useState<any>(null);
   const [isScorecardOpen, setIsScorecardOpen] = useState(false);
+
+  // Access Control states
+  const [selectedManager, setSelectedManager] = useState<any>(null);
+  const [isAccessOpen, setIsAccessOpen] = useState(false);
+  const [accessWorkerIds, setAccessWorkerIds] = useState<number[]>([]);
+  const [savingAccess, setSavingAccess] = useState(false);
 
   const fetchData = async () => {
     try {
@@ -117,6 +128,11 @@ export default function EmployeeDirectory() {
   const startCamera = async () => {
     setEnrollingStep('scanning');
     try {
+      if (!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia) {
+        console.warn('Webcam APIs are not available (insecure context/HTTP).');
+        setEnrollingStep('scanning');
+        return;
+      }
       const stream = await navigator.mediaDevices.getUserMedia({ video: { width: 320, height: 240 } });
       setCameraStream(stream);
       if (videoRef.current) {
@@ -126,6 +142,53 @@ export default function EmployeeDirectory() {
       console.error('Webcam access error:', err);
       // Fallback in case of lack of webcam: simulate camera stream
       setEnrollingStep('scanning');
+    }
+  };
+
+  const handleViewAccess = async (manager: any) => {
+    setSelectedManager(manager);
+    setIsAccessOpen(true);
+    try {
+      const res = await fetch(`/api/employees/access?manager_id=${manager.id}`);
+      const data = await res.json();
+      if (data.success) {
+        setAccessWorkerIds(data.worker_ids || []);
+      }
+    } catch (err) {
+      console.error('Failed to load manager worker access:', err);
+    }
+  };
+
+  const handleToggleWorkerAccess = (workerId: number) => {
+    if (accessWorkerIds.includes(workerId)) {
+      setAccessWorkerIds(accessWorkerIds.filter(id => id !== workerId));
+    } else {
+      setAccessWorkerIds([...accessWorkerIds, workerId]);
+    }
+  };
+
+  const handleSaveAccess = async () => {
+    if (!selectedManager) return;
+    try {
+      setSavingAccess(true);
+      const res = await fetch('/api/employees/access', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          manager_id: selectedManager.id,
+          worker_ids: accessWorkerIds,
+        }),
+      });
+      const data = await res.json();
+      if (data.success) {
+        setIsAccessOpen(false);
+        setSelectedManager(null);
+        alert('Manager worker permissions saved successfully!');
+      }
+    } catch (err) {
+      console.error('Failed to save manager worker access:', err);
+    } finally {
+      setSavingAccess(false);
     }
   };
 
@@ -409,6 +472,18 @@ export default function EmployeeDirectory() {
                           Scorecard
                         </Button>
                       )}
+
+                      {/* Access Control button for managers (HR Admin only) */}
+                      {userRole === 'HR Admin' && emp.role === 'Floor Manager' && (
+                        <Button 
+                          variant="ghost" 
+                          size="sm" 
+                          onClick={() => handleViewAccess(emp)}
+                          className="text-xs font-semibold hover:bg-secondary rounded-lg text-primary"
+                        >
+                          Access Control
+                        </Button>
+                      )}
                     </TableCell>
                   </TableRow>
                 ))
@@ -477,6 +552,52 @@ export default function EmployeeDirectory() {
               </div>
             </div>
           )}
+        </DialogContent>
+      </Dialog>
+
+      {/* Manager Access Control Modal */}
+      <Dialog open={isAccessOpen} onOpenChange={setIsAccessOpen}>
+        <DialogContent className="sm:max-w-[450px]">
+          <DialogHeader>
+            <DialogTitle className="text-sm font-bold flex items-center gap-2">
+              <Users className="text-primary h-5 w-5" />
+              Manager Worker Access Settings
+            </DialogTitle>
+            <DialogDescription className="text-xs">
+              Select which workers Floor Manager <span className="font-semibold text-foreground">{selectedManager?.name}</span> is authorized to oversee.
+            </DialogDescription>
+          </DialogHeader>
+
+          <div className="space-y-4 pt-4">
+            <div className="max-h-[250px] overflow-y-auto border border-border rounded-lg p-2 space-y-1 bg-secondary/10">
+              {employees.filter(emp => emp.role === 'Worker').map((worker) => (
+                <label key={worker.id} className="flex items-center gap-3 p-2 hover:bg-secondary/40 rounded-md cursor-pointer transition-colors text-xs">
+                  <input
+                    type="checkbox"
+                    checked={accessWorkerIds.includes(worker.id)}
+                    onChange={() => handleToggleWorkerAccess(worker.id)}
+                    className="h-4 w-4 rounded border-border text-primary focus:ring-primary/40 cursor-pointer"
+                  />
+                  <div className="flex-1">
+                    <p className="font-semibold text-foreground">{worker.name}</p>
+                    <p className="text-[10px] text-muted-foreground">{worker.department_name || 'No Department'}</p>
+                  </div>
+                </label>
+              ))}
+              {employees.filter(emp => emp.role === 'Worker').length === 0 && (
+                <p className="text-center py-4 text-xs text-muted-foreground">No workers found in database.</p>
+              )}
+            </div>
+
+            <div className="flex justify-end gap-3 pt-2">
+              <Button variant="outline" size="sm" onClick={() => setIsAccessOpen(false)} className="text-xs">
+                Cancel
+              </Button>
+              <Button size="sm" onClick={handleSaveAccess} disabled={savingAccess} className="text-xs font-semibold">
+                {savingAccess ? 'Saving...' : 'Save Permissions'}
+              </Button>
+            </div>
+          </div>
         </DialogContent>
       </Dialog>
     </div>

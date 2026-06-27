@@ -217,59 +217,45 @@ async function run() {
       );
     `);
 
-    console.log('Tables created. Checking and seeding initial data...');
+    // Manager Worker Access Table (defines manager access override)
+    await client.query(`
+      CREATE TABLE IF NOT EXISTS manager_worker_access (
+        id SERIAL PRIMARY KEY,
+        manager_id INTEGER NOT NULL REFERENCES employees(id) ON DELETE CASCADE,
+        worker_id INTEGER NOT NULL REFERENCES employees(id) ON DELETE CASCADE,
+        UNIQUE(manager_id, worker_id)
+      );
+    `);
+
+    console.log('Performing database clean reset for fresh start...');
+    await client.query(`
+      TRUNCATE TABLE 
+        employees, 
+        shifts, 
+        biometric_logs, 
+        shift_swaps, 
+        manager_worker_access, 
+        face_embeddings, 
+        payroll_ledgers, 
+        performance_scores, 
+        fraud_flags,
+        chatbot_conversations,
+        chatbot_knowledge_base,
+        departments
+      RESTART IDENTITY CASCADE;
+    `);
 
     // Seed Departments
-    const deptCount = await client.query('SELECT COUNT(*) FROM departments');
-    if (parseInt(deptCount.rows[0].count, 10) === 0) {
-      console.log('Seeding departments...');
-      await client.query("INSERT INTO departments (name) VALUES ('Assembly Line 1'), ('Packaging & Sorting'), ('Quality Assurance'), ('Maintenance & Logistics')");
-    }
+    console.log('Seeding departments...');
+    await client.query("INSERT INTO departments (name) VALUES ('Assembly Line 1'), ('Packaging & Sorting'), ('Quality Assurance'), ('Maintenance & Logistics')");
 
     // Seed Employees
-    const empCount = await client.query('SELECT COUNT(*) FROM employees');
     const kafiHash = bcrypt.hashSync('admin123', 10);
-    const managerHash = bcrypt.hashSync('manager123', 10);
-    const workerHash = bcrypt.hashSync('worker123', 10);
-
-    if (parseInt(empCount.rows[0].count, 10) === 0) {
-      console.log('Seeding employees...');
-      const assemblyDept = await client.query("SELECT id FROM departments WHERE name = 'Assembly Line 1'");
-      const packagingDept = await client.query("SELECT id FROM departments WHERE name = 'Packaging & Sorting'");
-      const qaDept = await client.query("SELECT id FROM departments WHERE name = 'Quality Assurance'");
-      const maintenanceDept = await client.query("SELECT id FROM departments WHERE name = 'Maintenance & Logistics'");
-
-      const employees = [
-        ['Kafi Ahmed', 'admin@gmail.com', 'HR Admin', null, kafiHash],
-        ['Nazmul Hasan', 'manager@gmail.com', 'Floor Manager', assemblyDept.rows[0].id, managerHash],
-        ['Faria Sultana', 'worker@gmail.com', 'Worker', assemblyDept.rows[0].id, workerHash],
-        ['Abir Rahman', 'abir@factory.com', 'Worker', packagingDept.rows[0].id, workerHash],
-        ['Sadia Jahan', 'sadia@factory.com', 'Worker', qaDept.rows[0].id, workerHash],
-        ['Robiul Islam', 'robi@factory.com', 'Worker', maintenanceDept.rows[0].id, workerHash],
-      ];
-
-      for (const [name, email, role, deptId, passwordVal] of employees) {
-        await client.query(
-          'INSERT INTO employees (name, email, role, department_id, status, password) VALUES ($1, $2, $3, $4, $5, $6)',
-          [name, email, role, deptId, 'Active', passwordVal]
-        );
-      }
-    } else {
-      // Update emails and passwords for existing employees to ensure they match request
-      console.log('Updating emails and passwords for existing employees in migrate.js...');
-      await client.query(`
-        UPDATE employees SET email = 'admin@gmail.com', password = $1 WHERE role = 'HR Admin';
-      `, [kafiHash]);
-      await client.query(`
-        UPDATE employees SET email = 'manager@gmail.com', password = $1 WHERE role = 'Floor Manager';
-      `, [managerHash]);
-      await client.query(`
-        UPDATE employees SET email = 'worker@gmail.com', password = $1 WHERE name = 'Faria Sultana';
-      `, [workerHash]);
-      await client.query(`
-        UPDATE employees SET password = $1 WHERE password IS NULL OR password = '';
-      `, [workerHash]);
-    }
+    console.log('Seeding fresh admin employee (Prithula)...');
+    await client.query(
+      'INSERT INTO employees (name, email, role, department_id, status, password) VALUES ($1, $2, $3, $4, $5, $6)',
+      ['Prithula', 'admin@gmail.com', 'HR Admin', null, 'Active', kafiHash]
+    );
 
     // Seed Policies
     const kbCount = await client.query('SELECT COUNT(*) FROM chatbot_knowledge_base');
@@ -293,7 +279,7 @@ async function run() {
           'security_policy.pdf',
         ],
         [
-          'Face recognition is mandatory for attendance check-ins. If recognition fails, workers must report to the Floor Manager (Nazmul Hasan) or HR Admin (Kafi Ahmed) for manual override.',
+          'Face recognition is mandatory for attendance check-ins. If recognition fails, workers must report to the Floor Manager (Nazmul Hasan) or HR Admin (Prithula) for manual override.',
           'attendance_policy.pdf',
         ],
       ];
@@ -306,64 +292,17 @@ async function run() {
       }
     }
 
-    // Seed Shifts and Biometric logs
-    const shiftCount = await client.query('SELECT COUNT(*) FROM shifts');
-    if (parseInt(shiftCount.rows[0].count, 10) === 0) {
-      console.log('Seeding shifts and biometric logs...');
-      const faria = await client.query("SELECT id FROM employees WHERE email = 'faria@factory.com'");
-      const abir = await client.query("SELECT id FROM employees WHERE email = 'abir@factory.com'");
-      const sadia = await client.query("SELECT id FROM employees WHERE email = 'sadia@factory.com'");
-      const robi = await client.query("SELECT id FROM employees WHERE email = 'robi@factory.com'");
-
-      const ids = [faria.rows[0].id, abir.rows[0].id, sadia.rows[0].id, robi.rows[0].id];
-      const today = new Date();
-
-      for (let i = -7; i <= 2; i++) {
-        const shiftDate = new Date(today);
-        shiftDate.setDate(today.getDate() + i);
-        const dateStr = shiftDate.toISOString().split('T')[0];
-
-        for (const employeeId of ids) {
-          const isAbsent = Math.random() < 0.1;
-          const status = i < 0 ? (isAbsent ? 'Absent' : 'Completed') : 'Scheduled';
-
-          await client.query(
-            'INSERT INTO shifts (employee_id, date, start_time, end_time, status) VALUES ($1, $2, $3, $4, $5)',
-            [employeeId, dateStr, '08:00:00', '16:00:00', status]
-          );
-
-          if (status === 'Completed' && i < 0) {
-            const checkInTime = new Date(shiftDate);
-            checkInTime.setHours(8, Math.floor(Math.random() * 15) - 5, 0);
-
-            const checkOutTime = new Date(shiftDate);
-            const overtimeHours = (employeeId === faria.rows[0].id && Math.random() < 0.4) ? 2 : 0;
-            checkOutTime.setHours(16 + overtimeHours, Math.floor(Math.random() * 10), 0);
-
-            await client.query(
-              'INSERT INTO biometric_logs (employee_id, timestamp, log_type, device_id, verified_by_face, gps_lat, gps_lng) VALUES ($1, $2, $3, $4, $5, $6, $7)',
-              [employeeId, checkInTime.toISOString(), 'Check_In', 'kiosk_main', true, 23.81031, 90.41252]
-            );
-
-            await client.query(
-              'INSERT INTO biometric_logs (employee_id, timestamp, log_type, device_id, verified_by_face, gps_lat, gps_lng) VALUES ($1, $2, $3, $4, $5, $6, $7)',
-              [employeeId, checkOutTime.toISOString(), 'Check_Out', 'kiosk_main', true, 23.81032, 90.41251]
-            );
-          }
-        }
-      }
-    }
-
-    // Seed shift swap requests if empty
-    const swapCount = await client.query('SELECT COUNT(*) FROM shift_swaps');
-    if (parseInt(swapCount.rows[0].count, 10) === 0) {
-      console.log('Seeding initial shift swap request in migrate.js...');
-      const faria = await client.query("SELECT id FROM employees WHERE email = 'worker@gmail.com'");
-      if (faria.rows.length > 0) {
-        await client.query(`
-          INSERT INTO shift_swaps (employee_id, employee_name, date, shift, reason, status)
-          VALUES ($1, 'Faria Sultana', 'Tomorrow', 'Day Shift', 'Family engagement', 'Pending')
-        `, [faria.rows[0].id]);
+    // Seed initial face embeddings if empty
+    const faceCount = await client.query('SELECT COUNT(*) FROM face_embeddings');
+    if (parseInt(faceCount.rows[0].count, 10) === 0) {
+      console.log('Seeding initial face embeddings in migrate.js...');
+      const mockVector = '[' + Array(128).fill(0.1).join(',') + ']';
+      const emps = await client.query("SELECT id FROM employees WHERE role IN ('HR Admin', 'Worker')");
+      for (const row of emps.rows) {
+        await client.query(
+          'INSERT INTO face_embeddings (employee_id, embedding, is_active) VALUES ($1, $2, true)',
+          [row.id, mockVector]
+        );
       }
     }
 

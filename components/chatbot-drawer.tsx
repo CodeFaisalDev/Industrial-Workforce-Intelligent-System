@@ -26,7 +26,7 @@ export default function ChatbotDrawer({ role }: ChatbotDrawerProps) {
 
   // Map system role to seeded database Employee ID
   const getUserIdByRole = () => {
-    if (role === 'HR Admin') return 1; // Kafi Ahmed
+    if (role === 'HR Admin') return 1; // Prithula
     if (role === 'Floor Manager') return 2; // Nazmul Hasan
     return 3; // Faria Sultana (Worker)
   };
@@ -42,7 +42,7 @@ export default function ChatbotDrawer({ role }: ChatbotDrawerProps) {
         setMessages(data.history);
       } else {
         // Welcome message if no history
-        const name = role === 'HR Admin' ? 'Kafi' : role === 'Floor Manager' ? 'Nazmul' : 'Faria';
+        const name = role === 'HR Admin' ? 'Prithula' : role === 'Floor Manager' ? 'Nazmul' : 'Faria';
         setMessages([
           {
             role: 'assistant',
@@ -89,7 +89,7 @@ export default function ChatbotDrawer({ role }: ChatbotDrawerProps) {
       } else {
         setMessages(prev => [
           ...prev,
-          { role: 'assistant', message: 'I encountered an error. Please report this to Nazmul or Kafi.' },
+          { role: 'assistant', message: 'I encountered an error. Please report this to Nazmul or Prithula.' },
         ]);
       }
     } catch (error) {
@@ -104,7 +104,7 @@ export default function ChatbotDrawer({ role }: ChatbotDrawerProps) {
   };
 
   const getActiveUserInitials = () => {
-    if (role === 'HR Admin') return 'KA';
+    if (role === 'HR Admin') return 'PR';
     if (role === 'Floor Manager') return 'NH';
     return 'FS';
   };
