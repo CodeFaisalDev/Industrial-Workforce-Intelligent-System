@@ -22,8 +22,17 @@ Instructions:
   return result || `Operational Alert: The ${deptName} shift for ${date} is forecast at ${predicted}/${scheduled} active headcount (${Math.round(attendanceRate * 100)}% historical attendance). Consider activating standby cover.`;
 }
 
+import { getServerSession } from 'next-auth';
+import { authOptions } from '../auth/[...nextauth]/route';
+
 export async function GET(request: Request) {
   try {
+    const session = await getServerSession(authOptions);
+    if (!session) {
+      return NextResponse.json({ success: false, error: 'Unauthorized' }, { status: 401 });
+    }
+
+    const companyId = (session.user as any).company_id;
     const { searchParams } = new URL(request.url);
     const dateStr = searchParams.get('date') || new Date().toISOString().split('T')[0];
 
@@ -31,10 +40,10 @@ export async function GET(request: Request) {
       SELECT f.*, d.name as department_name
       FROM staffing_forecasts f
       JOIN departments d ON f.department_id = d.id
-      WHERE f.shift_date = $1
+      WHERE f.shift_date = $1 AND d.company_id = $2
       ORDER BY d.name ASC
     `;
-    const result = await db.query(query, [dateStr]);
+    const result = await db.query(query, [dateStr, companyId]);
     return NextResponse.json({ success: true, forecasts: result.rows });
   } catch (error: any) {
     console.error('Failed to retrieve forecasts:', error);
@@ -44,14 +53,20 @@ export async function GET(request: Request) {
 
 export async function POST(request: Request) {
   try {
+    const session = await getServerSession(authOptions);
+    if (!session) {
+      return NextResponse.json({ success: false, error: 'Unauthorized' }, { status: 401 });
+    }
+
+    const companyId = (session.user as any).company_id;
     const body = await request.json();
     const { date } = body;
     const targetDate = date || new Date(Date.now() + 24 * 60 * 60 * 1000).toISOString().split('T')[0]; // Default to tomorrow
 
-    console.log(`Computing staffing forecast for date ${targetDate}...`);
+    console.log(`Computing staffing forecast for date ${targetDate} for company ${companyId}...`);
 
-    // 1. Get all departments
-    const departmentsRes = await db.query(`SELECT id, name FROM departments`);
+    // 1. Get all departments in this company
+    const departmentsRes = await db.query(`SELECT id, name FROM departments WHERE company_id = $1`, [companyId]);
     const departments = departmentsRes.rows;
 
     const forecasts = [];

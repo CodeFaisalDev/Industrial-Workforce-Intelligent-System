@@ -12,24 +12,25 @@ export async function GET() {
 
     const userId = (session.user as any).id;
     const role = (session.user as any).role;
+    const companyId = (session.user as any).company_id;
 
     let queryStr = `
       SELECT s.*, e.name as employee_name, e.role as employee_role, d.name as department_name
       FROM shifts s
       JOIN employees e ON s.employee_id = e.id
       LEFT JOIN departments d ON e.department_id = d.id
+      WHERE e.company_id = $1
     `;
-    const params: any[] = [];
+    const params: any[] = [companyId];
 
     if (role === 'Floor Manager') {
       queryStr += `
-        INNER JOIN manager_worker_access mwa ON e.id = mwa.worker_id
-        WHERE mwa.manager_id = $1
+        AND e.id IN (SELECT worker_id FROM manager_worker_access WHERE manager_id = $2)
       `;
       params.push(userId);
     } else if (role === 'Worker') {
       queryStr += `
-        WHERE e.id = $1
+        AND e.id = $2
       `;
       params.push(userId);
     }
@@ -49,6 +50,12 @@ export async function GET() {
 
 export async function POST(request: Request) {
   try {
+    const session = await getServerSession(authOptions);
+    if (!session) {
+      return NextResponse.json({ success: false, error: 'Unauthorized' }, { status: 401 });
+    }
+
+    const companyId = (session.user as any).company_id;
     const body = await request.json();
     const { employee_id, date, start_time, end_time, status } = body;
 
@@ -57,6 +64,12 @@ export async function POST(request: Request) {
         { success: false, error: 'employee_id, date, start_time, and end_time are required.' },
         { status: 400 }
       );
+    }
+
+    // Verify employee belongs to the same company
+    const empCheck = await db.query('SELECT company_id FROM employees WHERE id = $1', [employee_id]);
+    if (empCheck.rows.length === 0 || empCheck.rows[0].company_id !== companyId) {
+      return NextResponse.json({ success: false, error: 'Access denied: employee not in your company.' }, { status: 403 });
     }
 
     // Insert shift

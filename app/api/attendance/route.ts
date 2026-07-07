@@ -30,6 +30,7 @@ export async function GET(request: Request) {
 
     const userId = (session.user as any).id;
     const role = (session.user as any).role;
+    const companyId = (session.user as any).company_id;
 
     const { searchParams } = new URL(request.url);
     const employeeId = searchParams.get('employee_id');
@@ -38,28 +39,28 @@ export async function GET(request: Request) {
       SELECT b.*, e.name as employee_name, e.role as employee_role
       FROM biometric_logs b
       JOIN employees e ON b.employee_id = e.id
+      WHERE e.company_id = $1
     `;
-    const params: any[] = [];
+    const params: any[] = [companyId];
 
     if (role === 'Floor Manager') {
       query += `
-        INNER JOIN manager_worker_access mwa ON e.id = mwa.worker_id
-        WHERE mwa.manager_id = $1
+        AND e.id IN (SELECT worker_id FROM manager_worker_access WHERE manager_id = $2)
       `;
       params.push(userId);
       if (employeeId) {
-        query += ` AND b.employee_id = $2`;
+        query += ` AND b.employee_id = $3`;
         params.push(employeeId);
       }
     } else if (role === 'Worker') {
       query += `
-        WHERE b.employee_id = $1
+        AND b.employee_id = $2
       `;
       params.push(userId);
     } else {
       // HR Admin
       if (employeeId) {
-        query += ` WHERE b.employee_id = $1`;
+        query += ` AND b.employee_id = $2`;
         params.push(employeeId);
       }
     }
@@ -86,6 +87,7 @@ export async function POST(request: Request) {
       device_id,
       confidence_score, // optional from face-api.js match
       device_type, // 'Kiosk' or 'Mobile'
+      face_embedding, // capture from client
     } = body;
 
     if (!employee_id || !log_type || !device_id) {
@@ -97,12 +99,78 @@ export async function POST(request: Request) {
 
     console.log(`Processing ${log_type} for employee ${employee_id}...`);
 
-    // Verify employee exists
-    const empRes = await db.query(`SELECT id, name FROM employees WHERE id = $1`, [employee_id]);
+    // Verify employee exists and fetch company info
+    const empRes = await db.query(`SELECT id, name, company_id FROM employees WHERE id = $1`, [employee_id]);
     if (empRes.rows.length === 0) {
       return NextResponse.json({ success: false, error: 'Employee not found.' }, { status: 404 });
     }
     const employeeName = empRes.rows[0].name;
+    const empCompanyId = empRes.rows[0].company_id;
+
+    // Verify company matching if there is an active session
+    const session = await getServerSession(authOptions);
+    if (session) {
+      const userCompanyId = (session.user as any).company_id;
+      if (empCompanyId !== userCompanyId) {
+        return NextResponse.json({ success: false, error: 'Access denied: employee not in your company.' }, { status: 403 });
+      }
+    }
+
+    // --- Face Recognition Check ---
+    if (verified_by_face) {
+      const embedRes = await db.query(
+        `SELECT id FROM face_embeddings WHERE employee_id = $1 AND is_active = true`,
+        [employee_id]
+      );
+
+      if (embedRes.rows.length === 0) {
+        return NextResponse.json(
+          { success: false, error: 'Biometric scan failed: Face templates are not enrolled. Please register your face template in the Admin/Manager panel first.' },
+          { status: 400 }
+        );
+      }
+
+      if (face_embedding && Array.isArray(face_embedding)) {
+        const vectorString = `[${face_embedding.join(',')}]`;
+        const matchRes = await db.query(
+          `SELECT (embedding <-> $1::vector) as distance FROM face_embeddings WHERE employee_id = $2 AND is_active = true`,
+          [vectorString, employee_id]
+        );
+
+        const faceDistance = parseFloat(matchRes.rows[0].distance);
+        console.log(`Face match distance: ${faceDistance}`);
+
+        if (faceDistance > 0.05) {
+          const confidence = Math.max(0, parseFloat((1 - (faceDistance * 2)).toFixed(4)));
+          
+          // Log failed attempt
+          await db.query(
+            `INSERT INTO recognition_attempts (employee_id, confidence_score, matched, device_type, gps_lat, gps_lng)
+             VALUES ($1, $2, false, $3, $4, $5)`,
+            [
+              employee_id,
+              confidence,
+              device_type || 'Kiosk',
+              gps_lat || null,
+              gps_lng || null,
+            ]
+          );
+
+          // Raise buddy punch fraud flag immediately
+          const details = `Biometric Mismatch: Face recognition attempt failed with distance ${faceDistance.toFixed(4)} (confidence: ${confidence}).`;
+          await db.query(
+            `INSERT INTO fraud_flags (employee_id, flag_type, status, details, ai_digest_text)
+             VALUES ($1, 'buddy_punch', 'Pending', $2, 'Biometric verification alert: face match failed threshold checks.')`,
+            [employee_id, details]
+          );
+
+          return NextResponse.json(
+            { success: false, error: 'Biometric scan failed: Face template mismatch. Access denied.' },
+            { status: 400 }
+          );
+        }
+      }
+    }
 
     const timestamp = new Date().toISOString();
 
@@ -133,7 +201,7 @@ export async function POST(request: Request) {
         [
           employee_id,
           confidence_score || (verified_by_face ? 0.95 : 0.0),
-          !!verified_by_face,
+          true,
           device_type || 'Kiosk',
           gps_lat || null,
           gps_lng || null,

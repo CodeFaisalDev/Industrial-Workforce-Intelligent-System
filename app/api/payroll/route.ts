@@ -19,6 +19,7 @@ export async function GET(request: Request) {
 
     const userId = (session.user as any).id;
     const role = (session.user as any).role;
+    const companyId = (session.user as any).company_id;
 
     const { searchParams } = new URL(request.url);
     const employeeId = searchParams.get('employee_id');
@@ -28,28 +29,28 @@ export async function GET(request: Request) {
       FROM payroll_ledgers p
       JOIN employees e ON p.employee_id = e.id
       LEFT JOIN departments d ON e.department_id = d.id
+      WHERE e.company_id = $1
     `;
-    const params: any[] = [];
+    const params: any[] = [companyId];
 
     if (role === 'Floor Manager') {
       query += `
-        INNER JOIN manager_worker_access mwa ON e.id = mwa.worker_id
-        WHERE mwa.manager_id = $1
+        AND e.id IN (SELECT worker_id FROM manager_worker_access WHERE manager_id = $2)
       `;
       params.push(userId);
       if (employeeId) {
-        query += ` AND p.employee_id = $2`;
+        query += ` AND p.employee_id = $3`;
         params.push(employeeId);
       }
     } else if (role === 'Worker') {
       query += `
-        WHERE p.employee_id = $1
+        AND p.employee_id = $2
       `;
       params.push(userId);
     } else {
       // HR Admin
       if (employeeId) {
-        query += ` WHERE p.employee_id = $1`;
+        query += ` AND p.employee_id = $2`;
         params.push(employeeId);
       }
     }
@@ -66,6 +67,12 @@ export async function GET(request: Request) {
 
 export async function POST(request: Request) {
   try {
+    const session = await getServerSession(authOptions);
+    if (!session) {
+      return NextResponse.json({ success: false, error: 'Unauthorized' }, { status: 401 });
+    }
+
+    const companyId = (session.user as any).company_id;
     const body = await request.json();
     const { period_start, period_end } = body;
 
@@ -76,10 +83,13 @@ export async function POST(request: Request) {
       );
     }
 
-    console.log(`Computing payroll from ${period_start} to ${period_end}...`);
+    console.log(`Computing payroll from ${period_start} to ${period_end} for company ${companyId}...`);
 
-    // 1. Get all employees
-    const employeesRes = await db.query(`SELECT id, name, role FROM employees WHERE status = 'Active'`);
+    // 1. Get all active employees in this company
+    const employeesRes = await db.query(
+      `SELECT id, name, role FROM employees WHERE status = 'Active' AND company_id = $1`,
+      [companyId]
+    );
     const employees = employeesRes.rows;
 
     const payrollResults = [];

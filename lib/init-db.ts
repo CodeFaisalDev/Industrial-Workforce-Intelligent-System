@@ -10,13 +10,24 @@ export async function initDatabase() {
   console.log('Extensions "vector" and "pg_trgm" verified/enabled.');
 
   // 2. Create tables
+  // Companies
+  await db.query(`
+    CREATE TABLE IF NOT EXISTS companies (
+      id SERIAL PRIMARY KEY,
+      name VARCHAR(255) UNIQUE NOT NULL,
+      created_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP
+    );
+  `);
+
   // Departments
   await db.query(`
     CREATE TABLE IF NOT EXISTS departments (
       id SERIAL PRIMARY KEY,
-      name VARCHAR(255) UNIQUE NOT NULL,
+      name VARCHAR(255) NOT NULL,
       manager_id INTEGER,
-      created_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP
+      company_id INTEGER REFERENCES companies(id) ON DELETE CASCADE,
+      created_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP,
+      UNIQUE(name, company_id)
     );
   `);
 
@@ -29,14 +40,24 @@ export async function initDatabase() {
       password VARCHAR(255),
       role VARCHAR(50) NOT NULL DEFAULT 'Worker', -- 'HR Admin', 'Floor Manager', 'Worker'
       department_id INTEGER REFERENCES departments(id) ON DELETE SET NULL,
+      company_id INTEGER REFERENCES companies(id) ON DELETE CASCADE,
       status VARCHAR(50) NOT NULL DEFAULT 'Active', -- 'Active', 'Inactive'
       created_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP
     );
   `);
 
-  // Ensure password column exists if table was already created
+  // Ensure password and company_id columns exist if table was already created
   await db.query(`
     ALTER TABLE employees ADD COLUMN IF NOT EXISTS password VARCHAR(255);
+  `);
+  await db.query(`
+    ALTER TABLE employees ADD COLUMN IF NOT EXISTS company_id INTEGER REFERENCES companies(id) ON DELETE CASCADE;
+  `);
+  await db.query(`
+    ALTER TABLE departments ADD COLUMN IF NOT EXISTS company_id INTEGER REFERENCES companies(id) ON DELETE CASCADE;
+  `);
+  await db.query(`
+    ALTER TABLE chatbot_knowledge_base ADD COLUMN IF NOT EXISTS company_id INTEGER REFERENCES companies(id) ON DELETE CASCADE;
   `);
 
   // Update departments table manager foreign key if needed (done after employee table exists)
@@ -160,6 +181,7 @@ export async function initDatabase() {
       id SERIAL PRIMARY KEY,
       chunk_text TEXT NOT NULL,
       source_doc VARCHAR(255) NOT NULL,
+      company_id INTEGER REFERENCES companies(id) ON DELETE CASCADE,
       updated_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP
     );
   `);
@@ -202,6 +224,19 @@ export async function initDatabase() {
   console.log('All database tables verified/created.');
 
   // 3. Seed initial mock data if tables are empty
+  const compCount = await db.query('SELECT COUNT(*) FROM companies');
+  let companyId = 1;
+  if (parseInt(compCount.rows[0].count, 10) === 0) {
+    console.log('Seeding initial company...');
+    const compRes = await db.query("INSERT INTO companies (name) VALUES ('Faria Garments Ltd.') RETURNING id");
+    companyId = compRes.rows[0].id;
+  } else {
+    const compRes = await db.query("SELECT id FROM companies WHERE name = 'Faria Garments Ltd.'");
+    if (compRes.rows.length > 0) {
+      companyId = compRes.rows[0].id;
+    }
+  }
+
   const deptCount = await db.query('SELECT COUNT(*) FROM departments');
   if (parseInt(deptCount.rows[0].count, 10) === 0) {
     console.log('Seeding initial departments...');
@@ -212,7 +247,7 @@ export async function initDatabase() {
       ['Maintenance & Logistics', null],
     ];
     for (const [name] of depts) {
-      await db.query('INSERT INTO departments (name) VALUES ($1)', [name]);
+      await db.query('INSERT INTO departments (name, company_id) VALUES ($1, $2)', [name, companyId]);
     }
   }
 
@@ -222,17 +257,47 @@ export async function initDatabase() {
   const workerHash = bcrypt.hashSync('worker123', 10);
 
   if (parseInt(empCount.rows[0].count, 10) === 0) {
-    console.log('Seeding initial admin employee...');
+    console.log('Seeding initial employees...');
     await db.query(
-      'INSERT INTO employees (name, email, role, department_id, status, password) VALUES ($1, $2, $3, $4, $5, $6)',
-      ['Prithula', 'admin@gmail.com', 'HR Admin', null, 'Active', kafiHash]
+      'INSERT INTO employees (name, email, role, department_id, status, password, company_id) VALUES ($1, $2, $3, $4, $5, $6, $7)',
+      ['Prithula', 'admin@gmail.com', 'HR Admin', null, 'Active', kafiHash, companyId]
+    );
+    await db.query(
+      'INSERT INTO employees (name, email, role, department_id, status, password, company_id) VALUES ($1, $2, $3, $4, $5, $6, $7)',
+      ['Nazmul Hasan', 'manager@gmail.com', 'Floor Manager', 4, 'Active', managerHash, companyId]
+    );
+    await db.query(
+      'INSERT INTO employees (name, email, role, department_id, status, password, company_id) VALUES ($1, $2, $3, $4, $5, $6, $7)',
+      ['Faria Sultana', 'worker@gmail.com', 'Worker', 1, 'Active', workerHash, companyId]
+    );
+    await db.query(
+      'INSERT INTO employees (name, email, role, department_id, status, password, company_id) VALUES ($1, $2, $3, $4, $5, $6, $7)',
+      ['Faria Sultana (Factory)', 'faria@factory.com', 'Worker', 1, 'Active', workerHash, companyId]
+    );
+    await db.query(
+      'INSERT INTO employees (name, email, role, department_id, status, password, company_id) VALUES ($1, $2, $3, $4, $5, $6, $7)',
+      ['Abir Hasan', 'abir@factory.com', 'Worker', 1, 'Active', workerHash, companyId]
+    );
+    await db.query(
+      'INSERT INTO employees (name, email, role, department_id, status, password, company_id) VALUES ($1, $2, $3, $4, $5, $6, $7)',
+      ['Sadia Jahan', 'sadia@factory.com', 'Worker', 2, 'Active', workerHash, companyId]
+    );
+    await db.query(
+      'INSERT INTO employees (name, email, role, department_id, status, password, company_id) VALUES ($1, $2, $3, $4, $5, $6, $7)',
+      ['Robiul Islam', 'robi@factory.com', 'Worker', 3, 'Active', workerHash, companyId]
     );
   } else {
     // Update emails and passwords for existing employees to ensure they match request
-    console.log('Updating emails and passwords for existing admin in init-db.ts...');
+    console.log('Updating emails and passwords for existing admin, manager, and workers in init-db.ts...');
     await db.query(`
       UPDATE employees SET name = 'Prithula', email = 'admin@gmail.com', password = $1 WHERE role = 'HR Admin';
     `, [kafiHash]);
+    await db.query(`
+      UPDATE employees SET name = 'Nazmul Hasan', email = 'manager@gmail.com', password = $1 WHERE role = 'Floor Manager';
+    `, [managerHash]);
+    await db.query(`
+      UPDATE employees SET name = 'Faria Sultana', email = 'worker@gmail.com', password = $1 WHERE email = 'worker@gmail.com';
+    `, [workerHash]);
   }
 
   const kbCount = await db.query('SELECT COUNT(*) FROM chatbot_knowledge_base');
@@ -263,8 +328,8 @@ export async function initDatabase() {
 
     for (const [text, doc] of policies) {
       await db.query(
-        'INSERT INTO chatbot_knowledge_base (chunk_text, source_doc) VALUES ($1, $2)',
-        [text, doc]
+        'INSERT INTO chatbot_knowledge_base (chunk_text, source_doc, company_id) VALUES ($1, $2, $3)',
+        [text, doc, companyId]
       );
     }
   }
@@ -325,9 +390,12 @@ export async function initDatabase() {
   const faceCount = await db.query('SELECT COUNT(*) FROM face_embeddings');
   if (parseInt(faceCount.rows[0].count, 10) === 0) {
     console.log('Seeding initial face embeddings...');
-    const mockVector = '[' + Array(128).fill(0.1).join(',') + ']';
     const emps = await db.query("SELECT id FROM employees WHERE role IN ('HR Admin', 'Worker')");
     for (const row of emps.rows) {
+      const vectorArray = Array.from({ length: 128 }, (_, i) => {
+        return parseFloat((0.1 + (row.id * 0.005) + Math.sin(i + row.id) * 0.02).toFixed(4));
+      });
+      const mockVector = `[${vectorArray.join(',')}]`;
       await db.query(
         'INSERT INTO face_embeddings (employee_id, embedding, is_active) VALUES ($1, $2, true)',
         [row.id, mockVector]

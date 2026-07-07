@@ -2,8 +2,20 @@ import { NextResponse } from 'next/server';
 import { db } from '@/lib/db';
 import { callAIWithFallback } from '@/lib/ai-provider';
 
+import { getServerSession } from 'next-auth';
+import { authOptions } from '../auth/[...nextauth]/route';
+
 export async function GET(request: Request) {
   try {
+    const session = await getServerSession(authOptions);
+    if (!session) {
+      return NextResponse.json({ success: false, error: 'Unauthorized' }, { status: 401 });
+    }
+
+    const companyId = (session.user as any).company_id;
+    const sessionUserId = parseInt((session.user as any).id);
+    const sessionRole = (session.user as any).role;
+
     const { searchParams } = new URL(request.url);
     const userId = searchParams.get('user_id');
 
@@ -11,12 +23,25 @@ export async function GET(request: Request) {
       return NextResponse.json({ success: false, error: 'user_id is required' }, { status: 400 });
     }
 
+    const userIdNum = parseInt(userId);
+
+    // Verify target employee belongs to the same company
+    const empCheck = await db.query('SELECT company_id FROM employees WHERE id = $1', [userIdNum]);
+    if (empCheck.rows.length === 0 || empCheck.rows[0].company_id !== companyId) {
+      return NextResponse.json({ success: false, error: 'Access denied: employee not found in your company.' }, { status: 403 });
+    }
+
+    // Workers can only read their own chat history
+    if (sessionRole === 'Worker' && sessionUserId !== userIdNum) {
+      return NextResponse.json({ success: false, error: 'Access denied: workers can only view their own history.' }, { status: 403 });
+    }
+
     const result = await db.query(
       `SELECT * FROM chatbot_conversations
        WHERE user_id = $1
        ORDER BY timestamp ASC
        LIMIT 50`,
-      [userId]
+      [userIdNum]
     );
 
     return NextResponse.json({ success: true, history: result.rows });
@@ -28,6 +53,15 @@ export async function GET(request: Request) {
 
 export async function POST(request: Request) {
   try {
+    const session = await getServerSession(authOptions);
+    if (!session) {
+      return NextResponse.json({ success: false, error: 'Unauthorized' }, { status: 401 });
+    }
+
+    const companyId = (session.user as any).company_id;
+    const sessionUserId = parseInt((session.user as any).id);
+    const sessionRole = (session.user as any).role;
+
     const body = await request.json();
     const { message, user_id } = body;
 
@@ -38,21 +72,33 @@ export async function POST(request: Request) {
       );
     }
 
-    console.log(`Processing chatbot query for user ${user_id}: "${message}"`);
+    const userIdNum = parseInt(user_id);
 
-    // 1. Query employee details
+    // 1. Query employee details & verify tenant matching
     const empRes = await db.query(
-      `SELECT e.id, e.name, e.email, e.role, d.name as department_name
+      `SELECT e.id, e.name, e.email, e.role, e.company_id, d.name as department_name
        FROM employees e
        LEFT JOIN departments d ON e.department_id = d.id
        WHERE e.id = $1`,
-      [user_id]
+      [userIdNum]
     );
 
     if (empRes.rows.length === 0) {
       return NextResponse.json({ success: false, error: 'Employee not found.' }, { status: 404 });
     }
+
     const employee = empRes.rows[0];
+
+    if (employee.company_id !== companyId) {
+      return NextResponse.json({ success: false, error: 'Access denied: employee not in your company.' }, { status: 403 });
+    }
+
+    // Workers can only post in their own chat session
+    if (sessionRole === 'Worker' && sessionUserId !== userIdNum) {
+      return NextResponse.json({ success: false, error: 'Access denied.' }, { status: 403 });
+    }
+
+    console.log(`Processing chatbot query for user ${userIdNum} (Company ${companyId}): "${message}"`);
 
     // 2. Query worker's recent shifts (last 5)
     const shiftsRes = await db.query(
@@ -61,7 +107,7 @@ export async function POST(request: Request) {
        WHERE employee_id = $1
        ORDER BY date DESC
        LIMIT 5`,
-      [user_id]
+      [userIdNum]
     );
     const shifts = shiftsRes.rows;
 
@@ -72,17 +118,18 @@ export async function POST(request: Request) {
        WHERE employee_id = $1
        ORDER BY period_start DESC
        LIMIT 1`,
-      [user_id]
+      [userIdNum]
     );
     const payroll = payrollRes.rows[0] || null;
 
-    // 4. Retrieve matching policy documents via Postgres trigram similarity
+    // 4. Retrieve matching policy documents via Postgres trigram similarity, restricted to active company context
     const docsRes = await db.query(
       `SELECT chunk_text, source_doc, chunk_text <-> $1 as distance
        FROM chatbot_knowledge_base
+       WHERE company_id = $2 OR company_id IS NULL
        ORDER BY distance ASC
        LIMIT 3`,
-      [message]
+      [message, companyId]
     );
     const policies = docsRes.rows;
 
@@ -92,7 +139,7 @@ export async function POST(request: Request) {
        WHERE user_id = $1
        ORDER BY timestamp DESC
        LIMIT 6`,
-      [user_id]
+      [userIdNum]
     );
     const chatHistory = historyRes.rows.reverse();
 
@@ -130,7 +177,7 @@ You have access to the user's data (shifts, payroll) and verified company polici
 Guidelines:
 1. Ground your answers strictly in the provided User Details, Recent Shifts, Payslip Data, and Company Policies.
 2. If the user asks a question about their pay or shifts, calculate/reference the exact numbers shown in the data.
-3. If the data is missing or doesn't answer their query, explain that you don't have that information and suggest contacting HR Admin (Prithula) or Floor Manager (Nazmul Hasan). Do not make up answers.
+3. If the data is missing or doesn't answer their query, explain that you don't have that information and suggest contacting their HR Admin or Floor Manager. Do not make up answers.
 4. Keep replies clear, polite, and relatively concise.
 5. Address the user directly as ${employee.name}.`
       },
@@ -150,12 +197,12 @@ Guidelines:
     // 7. Save user message and bot reply to database
     await db.query(
       `INSERT INTO chatbot_conversations (user_id, message, role) VALUES ($1, $2, 'user')`,
-      [user_id, message]
+      [userIdNum, message]
     );
 
     await db.query(
       `INSERT INTO chatbot_conversations (user_id, message, role) VALUES ($1, $2, 'assistant')`,
-      [user_id, finalReply]
+      [userIdNum, finalReply]
     );
 
     return NextResponse.json({ success: true, reply: finalReply });

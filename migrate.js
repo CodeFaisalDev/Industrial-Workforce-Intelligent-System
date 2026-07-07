@@ -39,15 +39,45 @@ async function run() {
     await client.query(`CREATE EXTENSION IF NOT EXISTS vector;`);
     await client.query(`CREATE EXTENSION IF NOT EXISTS pg_trgm;`);
 
+    console.log('Dropping existing tables for a clean schema re-creation...');
+    await client.query(`
+      DROP TABLE IF EXISTS 
+        recognition_attempts,
+        fraud_flags,
+        payroll_ledgers,
+        face_embeddings,
+        biometric_logs,
+        shifts,
+        shift_swaps,
+        manager_worker_access,
+        chatbot_conversations,
+        chatbot_knowledge_base,
+        employees,
+        departments,
+        companies
+      CASCADE;
+    `);
+
     console.log('Creating database tables...');
+
+    // Companies Table
+    await client.query(`
+      CREATE TABLE IF NOT EXISTS companies (
+        id SERIAL PRIMARY KEY,
+        name VARCHAR(255) UNIQUE NOT NULL,
+        created_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP
+      );
+    `);
 
     // Departments Table
     await client.query(`
       CREATE TABLE IF NOT EXISTS departments (
         id SERIAL PRIMARY KEY,
-        name VARCHAR(255) UNIQUE NOT NULL,
+        name VARCHAR(255) NOT NULL,
         manager_id INTEGER,
-        created_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP
+        company_id INTEGER REFERENCES companies(id) ON DELETE CASCADE,
+        created_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP,
+        UNIQUE(name, company_id)
       );
     `);
 
@@ -60,6 +90,7 @@ async function run() {
         password VARCHAR(255),
         role VARCHAR(50) NOT NULL DEFAULT 'Worker',
         department_id INTEGER REFERENCES departments(id) ON DELETE SET NULL,
+        company_id INTEGER REFERENCES companies(id) ON DELETE CASCADE,
         status VARCHAR(50) NOT NULL DEFAULT 'Active',
         created_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP
       );
@@ -188,6 +219,7 @@ async function run() {
         id SERIAL PRIMARY KEY,
         chunk_text TEXT NOT NULL,
         source_doc VARCHAR(255) NOT NULL,
+        company_id INTEGER REFERENCES companies(id) ON DELETE CASCADE,
         updated_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP
       );
     `);
@@ -230,6 +262,7 @@ async function run() {
     console.log('Performing database clean reset for fresh start...');
     await client.query(`
       TRUNCATE TABLE 
+        companies,
         employees, 
         shifts, 
         biometric_logs, 
@@ -245,16 +278,48 @@ async function run() {
       RESTART IDENTITY CASCADE;
     `);
 
+    // Seed default Company
+    console.log('Seeding mock company...');
+    const compRes = await client.query("INSERT INTO companies (name) VALUES ('Faria Garments Ltd.') RETURNING id");
+    const companyId = compRes.rows[0].id;
+
     // Seed Departments
     console.log('Seeding departments...');
-    await client.query("INSERT INTO departments (name) VALUES ('Assembly Line 1'), ('Packaging & Sorting'), ('Quality Assurance'), ('Maintenance & Logistics')");
+    await client.query("INSERT INTO departments (name, company_id) VALUES ('Assembly Line 1', $1), ('Packaging & Sorting', $1), ('Quality Assurance', $1), ('Maintenance & Logistics', $1)", [companyId]);
 
     // Seed Employees
     const kafiHash = bcrypt.hashSync('admin123', 10);
-    console.log('Seeding fresh admin employee (Prithula)...');
+    const managerHash = bcrypt.hashSync('manager123', 10);
+    const workerHash = bcrypt.hashSync('worker123', 10);
+
+    console.log('Seeding employees (Admin, Manager, Workers)...');
     await client.query(
-      'INSERT INTO employees (name, email, role, department_id, status, password) VALUES ($1, $2, $3, $4, $5, $6)',
-      ['Prithula', 'admin@gmail.com', 'HR Admin', null, 'Active', kafiHash]
+      'INSERT INTO employees (name, email, role, department_id, status, password, company_id) VALUES ($1, $2, $3, $4, $5, $6, $7)',
+      ['Prithula', 'admin@gmail.com', 'HR Admin', null, 'Active', kafiHash, companyId]
+    );
+    await client.query(
+      'INSERT INTO employees (name, email, role, department_id, status, password, company_id) VALUES ($1, $2, $3, $4, $5, $6, $7)',
+      ['Nazmul Hasan', 'manager@gmail.com', 'Floor Manager', 4, 'Active', managerHash, companyId]
+    );
+    await client.query(
+      'INSERT INTO employees (name, email, role, department_id, status, password, company_id) VALUES ($1, $2, $3, $4, $5, $6, $7)',
+      ['Faria Sultana', 'worker@gmail.com', 'Worker', 1, 'Active', workerHash, companyId]
+    );
+    await client.query(
+      'INSERT INTO employees (name, email, role, department_id, status, password, company_id) VALUES ($1, $2, $3, $4, $5, $6, $7)',
+      ['Faria Sultana (Factory)', 'faria@factory.com', 'Worker', 1, 'Active', workerHash, companyId]
+    );
+    await client.query(
+      'INSERT INTO employees (name, email, role, department_id, status, password, company_id) VALUES ($1, $2, $3, $4, $5, $6, $7)',
+      ['Abir Hasan', 'abir@factory.com', 'Worker', 1, 'Active', workerHash, companyId]
+    );
+    await client.query(
+      'INSERT INTO employees (name, email, role, department_id, status, password, company_id) VALUES ($1, $2, $3, $4, $5, $6, $7)',
+      ['Sadia Jahan', 'sadia@factory.com', 'Worker', 2, 'Active', workerHash, companyId]
+    );
+    await client.query(
+      'INSERT INTO employees (name, email, role, department_id, status, password, company_id) VALUES ($1, $2, $3, $4, $5, $6, $7)',
+      ['Robiul Islam', 'robi@factory.com', 'Worker', 3, 'Active', workerHash, companyId]
     );
 
     // Seed Policies
@@ -286,8 +351,8 @@ async function run() {
 
       for (const [text, doc] of policies) {
         await client.query(
-          'INSERT INTO chatbot_knowledge_base (chunk_text, source_doc) VALUES ($1, $2)',
-          [text, doc]
+          'INSERT INTO chatbot_knowledge_base (chunk_text, source_doc, company_id) VALUES ($1, $2, $3)',
+          [text, doc, companyId]
         );
       }
     }
@@ -296,9 +361,12 @@ async function run() {
     const faceCount = await client.query('SELECT COUNT(*) FROM face_embeddings');
     if (parseInt(faceCount.rows[0].count, 10) === 0) {
       console.log('Seeding initial face embeddings in migrate.js...');
-      const mockVector = '[' + Array(128).fill(0.1).join(',') + ']';
       const emps = await client.query("SELECT id FROM employees WHERE role IN ('HR Admin', 'Worker')");
       for (const row of emps.rows) {
+        const vectorArray = Array.from({ length: 128 }, (_, i) => {
+          return parseFloat((0.1 + (row.id * 0.005) + Math.sin(i + row.id) * 0.02).toFixed(4));
+        });
+        const mockVector = `[${vectorArray.join(',')}]`;
         await client.query(
           'INSERT INTO face_embeddings (employee_id, embedding, is_active) VALUES ($1, $2, true)',
           [row.id, mockVector]

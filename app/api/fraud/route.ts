@@ -40,14 +40,25 @@ Instructions:
   return result || `Operational Digest: ${flagCount} items require review. Location checks indicate isolated GPS offsets; standard overtime checks show outliers in line baselines.`;
 }
 
+import { getServerSession } from 'next-auth';
+import { authOptions } from '../auth/[...nextauth]/route';
+
 export async function GET() {
   try {
+    const session = await getServerSession(authOptions);
+    if (!session) {
+      return NextResponse.json({ success: false, error: 'Unauthorized' }, { status: 401 });
+    }
+
+    const companyId = (session.user as any).company_id;
+
     const result = await db.query(`
       SELECT f.*, e.name as employee_name, e.role as employee_role
       FROM fraud_flags f
       LEFT JOIN employees e ON f.employee_id = e.id
+      WHERE e.company_id = $1
       ORDER BY f.raised_at DESC
-    `);
+    `, [companyId]);
     return NextResponse.json({ success: true, flags: result.rows });
   } catch (error: any) {
     console.error('Failed to get fraud flags:', error);
@@ -57,7 +68,13 @@ export async function GET() {
 
 export async function POST(request: Request) {
   try {
-    console.log('Running fraud detection engine...');
+    const session = await getServerSession(authOptions);
+    if (!session) {
+      return NextResponse.json({ success: false, error: 'Unauthorized' }, { status: 401 });
+    }
+
+    const companyId = (session.user as any).company_id;
+    console.log(`Running fraud detection engine for company ${companyId}...`);
 
     const newFlagsCount = { geofence: 0, overtime: 0, buddy: 0 };
     const flagsListForDigest: string[] = [];
@@ -70,7 +87,8 @@ export async function POST(request: Request) {
       WHERE b.timestamp >= NOW() - interval '7 days'
         AND b.gps_lat IS NOT NULL 
         AND b.gps_lng IS NOT NULL
-    `);
+        AND e.company_id = $1
+    `, [companyId]);
 
     for (const log of geofenceLogs.rows) {
       const distance = haversineDistance(FACTORY_LAT, FACTORY_LNG, log.gps_lat, log.gps_lng);
@@ -106,9 +124,9 @@ export async function POST(request: Request) {
       `SELECT employee_id, e.name, SUM(overtime_hours) as ot_hours
        FROM payroll_ledgers p
        JOIN employees e ON p.employee_id = e.id
-       WHERE period_start >= $1 AND period_end <= $2
+       WHERE period_start >= $1 AND period_end <= $2 AND e.company_id = $3
        GROUP BY employee_id, e.name`,
-      [startDate, endDate]
+      [startDate, endDate, companyId]
     );
 
     const ots = overtimeRes.rows.map(r => ({
@@ -156,7 +174,8 @@ export async function POST(request: Request) {
       JOIN biometric_logs b2 ON b1.timestamp = b2.timestamp AND b1.employee_id != b2.employee_id
       JOIN employees e ON b1.employee_id = e.id
       WHERE b1.timestamp >= NOW() - interval '7 days'
-    `);
+        AND e.company_id = $1
+    `, [companyId]);
 
     for (const dp of doublePunches.rows) {
       const details = `Simultaneous login flagged: Different employee IDs clocked in at exactly the same time (${new Date(dp.timestamp).toLocaleString()}).`;
@@ -184,10 +203,13 @@ export async function POST(request: Request) {
       const summaryString = flagsListForDigest.join('\n');
       aiDigestText = await fetchFraudDigest(totalFlagsCreated, summaryString);
 
-      // Save AI digest text on the newly created flags
+      // Save AI digest text on the newly created flags belonging to this company
       await db.query(
-        `UPDATE fraud_flags SET ai_digest_text = $1 WHERE ai_digest_text IS NULL`,
-        [aiDigestText]
+        `UPDATE fraud_flags 
+         SET ai_digest_text = $1 
+         WHERE ai_digest_text IS NULL 
+           AND employee_id IN (SELECT id FROM employees WHERE company_id = $2)`,
+        [aiDigestText, companyId]
       );
     }
 
@@ -206,11 +228,29 @@ export async function POST(request: Request) {
 
 export async function PUT(request: Request) {
   try {
+    const session = await getServerSession(authOptions);
+    if (!session) {
+      return NextResponse.json({ success: false, error: 'Unauthorized' }, { status: 401 });
+    }
+
+    const companyId = (session.user as any).company_id;
     const body = await request.json();
     const { flag_id, status, resolved_by } = body;
 
     if (!flag_id || !status) {
       return NextResponse.json({ success: false, error: 'flag_id and status are required.' }, { status: 400 });
+    }
+
+    // Verify flag belongs to an employee in this company
+    const flagCheck = await db.query(
+      `SELECT f.id FROM fraud_flags f 
+       JOIN employees e ON f.employee_id = e.id 
+       WHERE f.id = $1 AND e.company_id = $2`,
+      [flag_id, companyId]
+    );
+
+    if (flagCheck.rows.length === 0) {
+      return NextResponse.json({ success: false, error: 'Access denied: flag not found in your company.' }, { status: 403 });
     }
 
     await db.query(

@@ -27,8 +27,17 @@ Instructions:
   return result || `${empName} maintained a composite score of ${Math.round(composite)}% with ${overtimeHours.toFixed(1)} hours of overtime. Attendance is overall consistent.`;
 }
 
+import { getServerSession } from 'next-auth';
+import { authOptions } from '../auth/[...nextauth]/route';
+
 export async function GET(request: Request) {
   try {
+    const session = await getServerSession(authOptions);
+    if (!session) {
+      return NextResponse.json({ success: false, error: 'Unauthorized' }, { status: 401 });
+    }
+
+    const companyId = (session.user as any).company_id;
     const { searchParams } = new URL(request.url);
     const period = searchParams.get('period') || new Date().toISOString().slice(0, 7); // Default to current 'YYYY-MM'
 
@@ -37,10 +46,10 @@ export async function GET(request: Request) {
       FROM performance_scores p
       JOIN employees e ON p.employee_id = e.id
       LEFT JOIN departments d ON e.department_id = d.id
-      WHERE p.period = $1
+      WHERE p.period = $1 AND e.company_id = $2
       ORDER BY p.composite_score DESC, e.name ASC
     `;
-    const result = await db.query(query, [period]);
+    const result = await db.query(query, [period, companyId]);
     return NextResponse.json({ success: true, scores: result.rows });
   } catch (error: any) {
     console.error('Failed to get performance scores:', error);
@@ -50,19 +59,28 @@ export async function GET(request: Request) {
 
 export async function POST(request: Request) {
   try {
+    const session = await getServerSession(authOptions);
+    if (!session) {
+      return NextResponse.json({ success: false, error: 'Unauthorized' }, { status: 401 });
+    }
+
+    const companyId = (session.user as any).company_id;
     const body = await request.json();
     const { period } = body;
     const targetPeriod = period || new Date().toISOString().slice(0, 7); // Default to current month 'YYYY-MM'
 
-    console.log(`Calculating performance scores for period ${targetPeriod}...`);
+    console.log(`Calculating performance scores for period ${targetPeriod} for company ${companyId}...`);
 
     const year = parseInt(targetPeriod.split('-')[0], 10);
     const month = parseInt(targetPeriod.split('-')[1], 10);
     const startDate = `${year}-${month.toString().padStart(2, '0')}-01`;
     const endDate = new Date(year, month, 0).toISOString().split('T')[0]; // last day of month
 
-    // Get all active workers
-    const employeesRes = await db.query(`SELECT id, name, role FROM employees WHERE role = 'Worker' AND status = 'Active'`);
+    // Get all active workers in this company
+    const employeesRes = await db.query(
+      `SELECT id, name, role FROM employees WHERE role = 'Worker' AND status = 'Active' AND company_id = $1`,
+      [companyId]
+    );
     const employees = employeesRes.rows;
 
     const scores = [];

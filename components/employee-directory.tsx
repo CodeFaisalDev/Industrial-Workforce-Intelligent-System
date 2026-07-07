@@ -344,158 +344,160 @@ export default function EmployeeDirectory({ role: userRole, userId }: DirectoryP
 
       {/* Employees Table Card */}
       <Card className="glass-panel bg-card/30">
-        <CardContent className="p-0">
-          <Table>
-            <TableHeader>
-              <TableRow className="hover:bg-transparent">
-                <TableHead className="text-xs font-bold uppercase tracking-wider text-muted-foreground w-[220px]">Employee</TableHead>
-                <TableHead className="text-xs font-bold uppercase tracking-wider text-muted-foreground">System Role</TableHead>
-                <TableHead className="text-xs font-bold uppercase tracking-wider text-muted-foreground">Department</TableHead>
-                <TableHead className="text-xs font-bold uppercase tracking-wider text-muted-foreground">Facial Lock</TableHead>
-                <TableHead className="text-xs font-bold uppercase tracking-wider text-muted-foreground text-right">Actions</TableHead>
-              </TableRow>
-            </TableHeader>
-            <TableBody>
-              {loading ? (
-                <TableRow>
-                  <TableCell colSpan={5} className="text-center py-8 text-xs text-muted-foreground">
-                    Loading workforce directory...
-                  </TableCell>
+        <CardContent className="p-0 overflow-x-auto w-full">
+          <div className="min-w-[650px] md:min-w-0">
+            <Table>
+              <TableHeader>
+                <TableRow className="hover:bg-transparent">
+                  <TableHead className="text-xs font-bold uppercase tracking-wider text-muted-foreground w-[220px]">Employee</TableHead>
+                  <TableHead className="text-xs font-bold uppercase tracking-wider text-muted-foreground">System Role</TableHead>
+                  <TableHead className="text-xs font-bold uppercase tracking-wider text-muted-foreground">Department</TableHead>
+                  <TableHead className="text-xs font-bold uppercase tracking-wider text-muted-foreground">Facial Lock</TableHead>
+                  <TableHead className="text-xs font-bold uppercase tracking-wider text-muted-foreground text-right">Actions</TableHead>
                 </TableRow>
-              ) : employees.length > 0 ? (
-                employees.map((emp) => (
-                  <TableRow key={emp.id} className="hover:bg-secondary/20">
-                    <TableCell className="font-semibold py-4">
-                      <div className="text-xs font-bold text-foreground">{emp.name}</div>
-                      <div className="text-[10px] text-muted-foreground font-mono mt-0.5">{emp.email}</div>
-                    </TableCell>
-                    <TableCell className="text-xs text-muted-foreground">
-                      <Badge variant="outline" className="text-[10px] uppercase font-bold py-0">
-                        {emp.role}
-                      </Badge>
-                    </TableCell>
-                    <TableCell className="text-xs text-muted-foreground">
-                      {emp.department_name || 'HR Department'}
-                    </TableCell>
-                    <TableCell className="text-xs">
-                      {emp.face_enrolled ? (
-                        <div className="flex items-center gap-1.5 text-emerald-500 font-semibold text-[10px]">
-                          <CheckCircle2 size={12} />
-                          Enrolled
-                        </div>
-                      ) : (
-                        <div className="flex items-center gap-1.5 text-amber-500 font-semibold text-[10px]">
-                          <XCircle size={12} />
-                          Not Locked
-                        </div>
-                      )}
-                    </TableCell>
-                    <TableCell className="text-right space-x-2">
-                      {/* Biometric Face Lock Button */}
-                      <Dialog open={isCameraOpen && selectedEmp?.id === emp.id} onOpenChange={(open) => {
-                        setIsCameraOpen(open);
-                        if (open) {
-                          setSelectedEmp(emp);
-                          startCamera();
-                        } else {
-                          stopCamera();
-                          setSelectedEmp(null);
-                        }
-                      }}>
-                        <DialogTrigger render={<Button variant="ghost" size="icon" className="h-8 w-8 text-primary hover:bg-primary/5 rounded-lg" />}>
-                          <Camera size={14} />
-                        </DialogTrigger>
-                        <DialogContent className="sm:max-w-[400px] flex flex-col items-center">
-                          <DialogHeader className="w-full text-center">
-                            <DialogTitle className="text-sm font-bold">Face Lock Biometrics</DialogTitle>
-                            <DialogDescription className="text-xs">
-                              Enrolling face profile for <span className="font-semibold text-foreground">{selectedEmp?.name}</span>.
-                            </DialogDescription>
-                          </DialogHeader>
-
-                          {/* Webcam Portal Frame */}
-                          <div className="w-[300px] h-[225px] bg-black rounded-xl overflow-hidden border border-border relative my-4 flex items-center justify-center">
-                            {enrollingStep === 'scanning' && (
-                              <>
-                                <video ref={videoRef} autoPlay playsInline className="w-full h-full object-cover scale-x-[-1]" />
-                                {/* Face Scan HUD overlay */}
-                                <div className="absolute inset-0 border-2 border-primary/50 m-12 rounded-full border-dashed animate-pulse flex items-center justify-center">
-                                  <ScanFace className="text-primary h-12 w-12 animate-ping" />
-                                </div>
-                                <div className="absolute bottom-3 left-1/2 -translate-x-1/2 bg-black/60 px-3 py-1 rounded-full text-[10px] font-mono font-semibold text-primary">
-                                  Align face in center
-                                </div>
-                              </>
-                            )}
-
-                            {enrollingStep === 'captured' && (
-                              <div className="flex flex-col items-center text-center p-6 space-y-3">
-                                <ScanFace size={32} className="text-primary animate-bounce" />
-                                <div className="text-xs font-bold font-mono">Analyzing Facial Nodes...</div>
-                                <div className="w-24 h-1 bg-border rounded-full overflow-hidden">
-                                  <div className="h-full bg-primary animate-[shimmer_1.5s_infinite] w-1/2" />
-                                </div>
-                              </div>
-                            )}
-
-                            {enrollingStep === 'saved' && (
-                              <div className="flex flex-col items-center text-center p-6 space-y-2">
-                                <CheckCircle2 size={32} className="text-emerald-500 animate-bounce" />
-                                <div className="text-xs font-bold">Biometrics Locked!</div>
-                                <div className="text-[10px] text-muted-foreground font-mono">128-float vector written to pgvector</div>
-                              </div>
-                            )}
-                          </div>
-
-                          <div className="flex gap-4 w-full">
-                            <Button variant="outline" size="sm" onClick={() => setIsCameraOpen(false)} className="flex-1 text-xs">
-                              Cancel
-                            </Button>
-                            {enrollingStep === 'scanning' && (
-                              <Button size="sm" onClick={handleCaptureFace} className="flex-1 text-xs gap-1.5 font-semibold">
-                                <Camera size={14} />
-                                Capture Frame
-                              </Button>
-                            )}
-                          </div>
-                        </DialogContent>
-                      </Dialog>
-
-                      {/* Performance Scorecard button */}
-                      {emp.role === 'Worker' && (
-                        <Button 
-                          variant="ghost" 
-                          size="sm" 
-                          onClick={() => handleViewScorecard(emp)}
-                          className="text-xs font-semibold hover:bg-secondary rounded-lg"
-                        >
-                          Scorecard
-                        </Button>
-                      )}
-
-                      {/* Access Control button for managers (HR Admin only) */}
-                      {userRole === 'HR Admin' && emp.role === 'Floor Manager' && (
-                        <Button 
-                          variant="ghost" 
-                          size="sm" 
-                          onClick={() => handleViewAccess(emp)}
-                          className="text-xs font-semibold hover:bg-secondary rounded-lg text-primary"
-                        >
-                          Access Control
-                        </Button>
-                      )}
+              </TableHeader>
+              <TableBody>
+                {loading ? (
+                  <TableRow>
+                    <TableCell colSpan={5} className="text-center py-8 text-xs text-muted-foreground">
+                      Loading workforce directory...
                     </TableCell>
                   </TableRow>
-                ))
-              ) : (
-                <TableRow>
-                  <TableCell colSpan={5} className="text-center py-8 text-xs text-muted-foreground">
-                    No employees registered in database.
-                  </TableCell>
-                </TableRow>
-              )}
-            </TableBody>
-          </Table>
+                ) : employees.length > 0 ? (
+                  employees.map((emp) => (
+                    <TableRow key={emp.id} className="hover:bg-secondary/20">
+                      <TableCell className="font-semibold py-4">
+                        <div className="text-xs font-bold text-foreground">{emp.name}</div>
+                        <div className="text-[10px] text-muted-foreground font-mono mt-0.5">{emp.email}</div>
+                      </TableCell>
+                      <TableCell className="text-xs text-muted-foreground">
+                        <Badge variant="outline" className="text-[10px] uppercase font-bold py-0">
+                          {emp.role}
+                        </Badge>
+                      </TableCell>
+                      <TableCell className="text-xs text-muted-foreground">
+                        {emp.department_name || 'HR Department'}
+                      </TableCell>
+                      <TableCell className="text-xs">
+                        {emp.face_enrolled ? (
+                          <div className="flex items-center gap-1.5 text-emerald-500 font-semibold text-[10px]">
+                            <CheckCircle2 size={12} />
+                            Enrolled
+                          </div>
+                        ) : (
+                          <div className="flex items-center gap-1.5 text-amber-500 font-semibold text-[10px]">
+                            <XCircle size={12} />
+                            Not Locked
+                          </div>
+                        )}
+                      </TableCell>
+                      <TableCell className="text-right space-x-2">
+                        {/* Biometric Face Lock Button */}
+                        <Dialog open={isCameraOpen && selectedEmp?.id === emp.id} onOpenChange={(open) => {
+                          setIsCameraOpen(open);
+                          if (open) {
+                            setSelectedEmp(emp);
+                            startCamera();
+                          } else {
+                            stopCamera();
+                            setSelectedEmp(null);
+                          }
+                        }}>
+                          <DialogTrigger render={<Button variant="ghost" size="icon" className="h-8 w-8 text-primary hover:bg-primary/5 rounded-lg" />}>
+                            <Camera size={14} />
+                          </DialogTrigger>
+                          <DialogContent className="sm:max-w-[400px] flex flex-col items-center">
+                            <DialogHeader className="w-full text-center">
+                              <DialogTitle className="text-sm font-bold">Face Lock Biometrics</DialogTitle>
+                              <DialogDescription className="text-xs">
+                                Enrolling face profile for <span className="font-semibold text-foreground">{selectedEmp?.name}</span>.
+                              </DialogDescription>
+                            </DialogHeader>
+
+                            {/* Webcam Portal Frame */}
+                            <div className="w-[300px] h-[225px] bg-black rounded-xl overflow-hidden border border-border relative my-4 flex items-center justify-center">
+                              {enrollingStep === 'scanning' && (
+                                <>
+                                  <video ref={videoRef} autoPlay playsInline className="w-full h-full object-cover scale-x-[-1]" />
+                                  {/* Face Scan HUD overlay */}
+                                  <div className="absolute inset-0 border-2 border-primary/50 m-12 rounded-full border-dashed animate-pulse flex items-center justify-center">
+                                    <ScanFace className="text-primary h-12 w-12 animate-ping" />
+                                  </div>
+                                  <div className="absolute bottom-3 left-1/2 -translate-x-1/2 bg-black/60 px-3 py-1 rounded-full text-[10px] font-mono font-semibold text-primary">
+                                    Align face in center
+                                  </div>
+                                </>
+                              )}
+
+                              {enrollingStep === 'captured' && (
+                                <div className="flex flex-col items-center text-center p-6 space-y-3">
+                                  <ScanFace size={32} className="text-primary animate-bounce" />
+                                  <div className="text-xs font-bold font-mono">Analyzing Facial Nodes...</div>
+                                  <div className="w-24 h-1 bg-border rounded-full overflow-hidden">
+                                    <div className="h-full bg-primary animate-[shimmer_1.5s_infinite] w-1/2" />
+                                  </div>
+                                </div>
+                              )}
+
+                              {enrollingStep === 'saved' && (
+                                <div className="flex flex-col items-center text-center p-6 space-y-2">
+                                  <CheckCircle2 size={32} className="text-emerald-500 animate-bounce" />
+                                  <div className="text-xs font-bold">Biometrics Locked!</div>
+                                  <div className="text-[10px] text-muted-foreground font-mono">128-float vector written to pgvector</div>
+                                </div>
+                              )}
+                            </div>
+
+                            <div className="flex gap-4 w-full">
+                              <Button variant="outline" size="sm" onClick={() => setIsCameraOpen(false)} className="flex-1 text-xs">
+                                Cancel
+                              </Button>
+                              {enrollingStep === 'scanning' && (
+                                <Button size="sm" onClick={handleCaptureFace} className="flex-1 text-xs gap-1.5 font-semibold">
+                                  <Camera size={14} />
+                                  Capture Frame
+                                </Button>
+                              )}
+                            </div>
+                          </DialogContent>
+                        </Dialog>
+
+                        {/* Performance Scorecard button */}
+                        {emp.role === 'Worker' && (
+                          <Button 
+                            variant="ghost" 
+                            size="sm" 
+                            onClick={() => handleViewScorecard(emp)}
+                            className="text-xs font-semibold hover:bg-secondary rounded-lg"
+                          >
+                            Scorecard
+                          </Button>
+                        )}
+
+                        {/* Access Control button for managers (HR Admin only) */}
+                        {userRole === 'HR Admin' && emp.role === 'Floor Manager' && (
+                          <Button 
+                            variant="ghost" 
+                            size="sm" 
+                            onClick={() => handleViewAccess(emp)}
+                            className="text-xs font-semibold hover:bg-secondary rounded-lg text-primary"
+                          >
+                            Access Control
+                          </Button>
+                        )}
+                      </TableCell>
+                    </TableRow>
+                  ))
+                ) : (
+                  <TableRow>
+                    <TableCell colSpan={5} className="text-center py-8 text-xs text-muted-foreground">
+                      No employees registered in database.
+                    </TableCell>
+                  </TableRow>
+                )}
+              </TableBody>
+            </Table>
+          </div>
         </CardContent>
       </Card>
 

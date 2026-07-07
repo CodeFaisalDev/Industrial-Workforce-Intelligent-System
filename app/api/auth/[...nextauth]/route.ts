@@ -17,7 +17,10 @@ export const authOptions: NextAuthOptions = {
         }
 
         const result = await db.query(
-          'SELECT * FROM employees WHERE email = $1 AND status = $2',
+          `SELECT e.*, c.name as company_name 
+           FROM employees e 
+           LEFT JOIN companies c ON e.company_id = c.id 
+           WHERE e.email = $1 AND e.status = $2`,
           [credentials.email.toLowerCase().trim(), 'Active']
         );
 
@@ -39,6 +42,8 @@ export const authOptions: NextAuthOptions = {
           name: user.name,
           email: user.email,
           role: user.role,
+          company_id: user.company_id,
+          company_name: user.company_name,
         };
       },
     }),
@@ -48,6 +53,8 @@ export const authOptions: NextAuthOptions = {
       if (user) {
         token.id = user.id;
         token.role = (user as any).role;
+        token.company_id = (user as any).company_id;
+        token.company_name = (user as any).company_name;
       }
       return token;
     },
@@ -55,6 +62,8 @@ export const authOptions: NextAuthOptions = {
       if (token && session.user) {
         (session.user as any).id = token.id;
         (session.user as any).role = token.role;
+        (session.user as any).company_id = token.company_id;
+        (session.user as any).company_name = token.company_name;
       }
       return session;
     },

@@ -30,6 +30,9 @@ export default function KioskMode({ role, userId, userName }: KioskProps) {
   const [offlineMode, setOfflineMode] = useState(false);
   const [offlineLogs, setOfflineLogs] = useState<any[]>([]);
 
+  // Face verification simulation profile
+  const [presentedFace, setPresentedFace] = useState<'correct' | 'wrong' | 'unknown'>('correct');
+
   // Camera and scanning states
   const [scanState, setScanState] = useState<'idle' | 'scanning' | 'liveness' | 'success' | 'error'>('idle');
   const [livenessChallenge, setLivenessChallenge] = useState('Blink twice to verify liveness');
@@ -159,12 +162,31 @@ export default function KioskMode({ role, userId, userName }: KioskProps) {
   };
 
   const handleLivenessPass = async () => {
-    setScanState('success');
     stopCamera();
 
     // Coordinates: Factory coordinates is (23.8103, 90.4125). Offsite is (23.8122, 90.4138)
     const lat = simulateOffsite ? 23.8122 : 23.81031;
     const lng = simulateOffsite ? 90.4138 : 90.41252;
+
+    const currentEmp = employees.find(e => e.id === parseInt(selectedEmpId));
+    let embedding: number[] = [];
+    let confidence = 0.98;
+
+    if (presentedFace === 'correct') {
+      embedding = currentEmp?.face_embedding
+        ? currentEmp.face_embedding.replace('[', '').replace(']', '').split(',').map(Number)
+        : Array(128).fill(0.1);
+      confidence = 0.98;
+    } else if (presentedFace === 'wrong') {
+      const otherEmp = employees.find(e => e.id !== parseInt(selectedEmpId) && e.face_embedding);
+      embedding = otherEmp?.face_embedding
+        ? otherEmp.face_embedding.replace('[', '').replace(']', '').split(',').map(Number)
+        : Array(128).fill(0.9);
+      confidence = 0.22;
+    } else {
+      embedding = Array.from({ length: 128 }, () => Math.random() * 2 - 1);
+      confidence = 0.04;
+    }
 
     const punchPayload = {
       employee_id: parseInt(selectedEmpId),
@@ -174,22 +196,23 @@ export default function KioskMode({ role, userId, userName }: KioskProps) {
       verified_by_face: true,
       device_id: 'kiosk_main_entrance',
       device_type: 'Kiosk',
-      confidence_score: 0.96,
+      confidence_score: confidence,
+      face_embedding: embedding,
     };
 
     if (offlineMode) {
       // Cache punch log locally in IndexedDB for offline mode
-      const emp = employees.find(e => e.id === parseInt(selectedEmpId));
       try {
         await savePunch({
           employee_id: parseInt(selectedEmpId),
-          employee_name: emp?.name || 'Worker',
+          employee_name: currentEmp?.name || 'Worker',
           timestamp: new Date().toISOString(),
           log_type: logType,
-          confidence: 0.96,
+          confidence: confidence,
           gps_lat: lat,
           gps_lng: lng,
           synced: 0,
+          ...({ face_embedding: embedding } as any)
         });
         await loadOfflineCount();
       } catch (err) {
@@ -199,11 +222,12 @@ export default function KioskMode({ role, userId, userName }: KioskProps) {
       setVerificationResult({
         success: true,
         message: `${logType} recorded locally (IndexedDB Offline Cache)!`,
-        employee_name: emp?.name,
+        employee_name: currentEmp?.name,
         geofence_ok: !simulateOffsite,
         geofence_distance_m: simulateOffsite ? 250 : 2,
         offline: true
       });
+      setScanState('success');
       return;
     }
 
@@ -217,7 +241,9 @@ export default function KioskMode({ role, userId, userName }: KioskProps) {
       const data = await res.json();
       if (data.success) {
         setVerificationResult(data);
+        setScanState('success');
       } else {
+        setScanErrorMsg(data.error || 'Liveness check or facial node matching failed. Please try again or report to Nazmul Hasan.');
         setScanState('error');
       }
     } catch (err) {
@@ -246,6 +272,7 @@ export default function KioskMode({ role, userId, userName }: KioskProps) {
               device_id: 'kiosk_main_entrance',
               device_type: 'Kiosk',
               confidence_score: log.confidence,
+              face_embedding: (log as any).face_embedding,
             })
           });
           if (log.id) {
@@ -304,6 +331,42 @@ export default function KioskMode({ role, userId, userName }: KioskProps) {
               <p className="text-xs font-bold text-foreground mt-0.5">{simulateOffsite ? 'Outside Perimeter (250m)' : 'Inside Factory Gate (2m)'}</p>
             </div>
             <MapPin size={16} className={simulateOffsite ? 'text-amber-500' : 'text-emerald-500'} />
+          </CardContent>
+        </Card>
+
+        {/* Face Recognition Face Simulator */}
+        <Card className="glass-panel border-l-2 border-l-cyan-500 bg-card/40 col-span-2">
+          <CardContent className="p-4 flex flex-col justify-between space-y-2">
+            <div>
+              <span className="text-[10px] uppercase font-bold text-muted-foreground">Presented Face Simulator (Biometrics)</span>
+              <p className="text-[11px] text-muted-foreground mt-0.5">Control which face pattern is presented to the gate camera scanner.</p>
+            </div>
+            <div className="flex gap-2">
+              <Button 
+                size="sm" 
+                variant={presentedFace === 'correct' ? 'default' : 'outline'} 
+                onClick={() => setPresentedFace('correct')}
+                className="text-[10px] h-7 px-3 flex-1 font-semibold"
+              >
+                Correct Face
+              </Button>
+              <Button 
+                size="sm" 
+                variant={presentedFace === 'wrong' ? 'default' : 'outline'} 
+                onClick={() => setPresentedFace('wrong')}
+                className="text-[10px] h-7 px-3 flex-1 font-semibold"
+              >
+                Mismatched Face
+              </Button>
+              <Button 
+                size="sm" 
+                variant={presentedFace === 'unknown' ? 'default' : 'outline'} 
+                onClick={() => setPresentedFace('unknown')}
+                className="text-[10px] h-7 px-3 flex-1 font-semibold"
+              >
+                Unregistered Face
+              </Button>
+            </div>
           </CardContent>
         </Card>
       </div>
