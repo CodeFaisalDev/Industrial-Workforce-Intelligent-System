@@ -293,11 +293,11 @@ export default function EmployeeDirectory({ role: userRole, userId }: DirectoryP
             <form onSubmit={handleAddEmployee} className="space-y-4 pt-4">
               <div className="space-y-1">
                 <Label htmlFor="name" className="text-xs font-semibold">Full Name</Label>
-                <Input id="name" value={name} onChange={(e) => setName(e.target.value)} placeholder="e.g. Faria Sultana" className="text-xs" required />
+                <Input id="name" value={name} onChange={(e) => setName(e.target.value)} placeholder="(test name)" className="text-xs" required />
               </div>
               <div className="space-y-1">
                 <Label htmlFor="email" className="text-xs font-semibold">Email Address</Label>
-                <Input id="email" type="email" value={email} onChange={(e) => setEmail(e.target.value)} placeholder="faria@factory.com" className="text-xs" required />
+                <Input id="email" type="email" value={email} onChange={(e) => setEmail(e.target.value)} placeholder="worker@company.com" className="text-xs" required />
               </div>
               <div className="space-y-1">
                 <Label htmlFor="passwordInput" className="text-xs font-semibold">Login Password</Label>

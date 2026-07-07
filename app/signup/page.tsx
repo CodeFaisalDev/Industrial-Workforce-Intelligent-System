@@ -135,7 +135,7 @@ export default function Signup() {
                 type="text"
                 value={adminName}
                 onChange={(e) => setAdminName(e.target.value)}
-                placeholder="e.g. Faria Sultana"
+                placeholder="(test name)"
                 className="w-full bg-secondary/30 hover:bg-secondary/50 focus:bg-background focus:ring-1 focus:ring-primary border border-border px-3.5 py-2.5 rounded-lg text-sm transition-all focus:outline-none placeholder:text-muted-foreground/60"
                 required
               />
