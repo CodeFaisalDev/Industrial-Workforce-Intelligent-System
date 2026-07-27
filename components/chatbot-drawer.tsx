@@ -7,6 +7,8 @@ import { Input } from './ui/input';
 import { Avatar, AvatarFallback } from './ui/avatar';
 import { Send, Terminal, User, Sparkles, AlertCircle } from 'lucide-react';
 
+import { useSession } from 'next-auth/react';
+
 interface ChatMessage {
   id?: number;
   message: string;
@@ -19,13 +21,17 @@ interface ChatbotDrawerProps {
 }
 
 export default function ChatbotDrawer({ role }: ChatbotDrawerProps) {
+  const { data: session } = useSession();
   const [messages, setMessages] = useState<ChatMessage[]>([]);
   const [input, setInput] = useState('');
   const [loading, setLoading] = useState(false);
   const messagesEndRef = useRef<HTMLDivElement>(null);
 
-  // Map system role to seeded database Employee ID
+  // Map system role or authenticated session to database Employee ID
   const getUserIdByRole = () => {
+    if (session?.user && (session.user as any).id) {
+      return parseInt((session.user as any).id, 10);
+    }
     if (role === 'HR Admin') return 1; // Prithula
     if (role === 'Floor Manager') return 2; // Nazmul Hasan
     return 3; // Faria Sultana (Worker)
@@ -178,9 +184,34 @@ export default function ChatbotDrawer({ role }: ChatbotDrawerProps) {
         <div ref={messagesEndRef} />
       </div>
 
-      {/* Input Message Form */}
+      {/* Suggestion Chips */}
+      <div className="px-4 py-2 border-t border-border/40 bg-card/20 flex flex-wrap gap-1.5">
+        <button
+          type="button"
+          onClick={() => { setInput('What is the overtime calculation policy?'); }}
+          className="text-[10px] font-semibold bg-secondary/50 hover:bg-primary/20 hover:text-primary border border-border px-2.5 py-1 rounded-full transition-colors cursor-pointer"
+        >
+          Overtime Policy?
+        </button>
+        <button
+          type="button"
+          onClick={() => { setInput('How many days of leave am I entitled to?'); }}
+          className="text-[10px] font-semibold bg-secondary/50 hover:bg-primary/20 hover:text-primary border border-border px-2.5 py-1 rounded-full transition-colors cursor-pointer"
+        >
+          Leave Entitlement?
+        </button>
+        <button
+          type="button"
+          onClick={() => { setInput('Show my latest payslip calculation summary'); }}
+          className="text-[10px] font-semibold bg-secondary/50 hover:bg-primary/20 hover:text-primary border border-border px-2.5 py-1 rounded-full transition-colors cursor-pointer"
+        >
+          Payslip Summary?
+        </button>
+      </div>
+
+      {/* Input Form */}
       <div className="p-4 border-t border-border bg-card">
-        <form onSubmit={handleSendMessage} className="flex gap-2">
+        <form onSubmit={handleSendMessage} className="flex items-center gap-2">
           <Input
             value={input}
             onChange={(e) => setInput(e.target.value)}

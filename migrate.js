@@ -3,12 +3,14 @@ const path = require('path');
 const { Pool } = require('pg');
 const bcrypt = require('bcryptjs');
 
-// Load environment variables from .env.local
-const envPath = path.join(__dirname, '.env.local');
+// Load environment variables from .env.local or .env
+const envLocalPath = path.join(__dirname, '.env.local');
+const envPath = path.join(__dirname, '.env');
+const targetEnvPath = fs.existsSync(envLocalPath) ? envLocalPath : envPath;
 let databaseUrl = process.env.DATABASE_URL;
 
-if (fs.existsSync(envPath)) {
-  const envContent = fs.readFileSync(envPath, 'utf8');
+if (fs.existsSync(targetEnvPath)) {
+  const envContent = fs.readFileSync(targetEnvPath, 'utf8');
   envContent.split(/\r?\n/).forEach(line => {
     const match = line.match(/^\s*([\w.-]+)\s*=\s*(.*)?\s*$/);
     if (match) {
@@ -259,6 +261,20 @@ async function run() {
       );
     `);
 
+    // Leave Requests Table
+    await client.query(`
+      CREATE TABLE IF NOT EXISTS leave_requests (
+        id SERIAL PRIMARY KEY,
+        employee_id INTEGER NOT NULL REFERENCES employees(id) ON DELETE CASCADE,
+        leave_type VARCHAR(50) NOT NULL,
+        start_date DATE NOT NULL,
+        end_date DATE NOT NULL,
+        reason TEXT NOT NULL,
+        status VARCHAR(50) NOT NULL DEFAULT 'Pending',
+        created_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP
+      );
+    `);
+
     console.log('Performing database clean reset for fresh start...');
     await client.query(`
       TRUNCATE TABLE 
@@ -267,7 +283,8 @@ async function run() {
         shifts, 
         biometric_logs, 
         shift_swaps, 
-        manager_worker_access, 
+        manager_worker_access,
+        leave_requests,
         face_embeddings, 
         payroll_ledgers, 
         performance_scores, 
@@ -370,6 +387,22 @@ async function run() {
         await client.query(
           'INSERT INTO face_embeddings (employee_id, embedding, is_active) VALUES ($1, $2, true)',
           [row.id, mockVector]
+        );
+      }
+    }
+
+    // Seed sample leave requests if empty
+    const leaveCount = await client.query('SELECT COUNT(*) FROM leave_requests');
+    if (parseInt(leaveCount.rows[0].count, 10) === 0) {
+      console.log('Seeding sample leave requests...');
+      const workerRes = await client.query("SELECT id FROM employees WHERE email = 'worker@gmail.com'");
+      if (workerRes.rows.length > 0) {
+        const workerId = workerRes.rows[0].id;
+        await client.query(
+          `INSERT INTO leave_requests (employee_id, leave_type, start_date, end_date, reason, status)
+           VALUES ($1, 'Casual Leave', '2026-08-01', '2026-08-02', 'Family function gathering', 'Pending'),
+                  ($1, 'Sick Leave', '2026-07-10', '2026-07-11', 'Medical checkup and flu recovery', 'Approved')`,
+          [workerId]
         );
       }
     }

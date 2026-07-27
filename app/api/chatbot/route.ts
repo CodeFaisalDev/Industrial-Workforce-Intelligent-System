@@ -143,6 +143,13 @@ export async function POST(request: Request) {
     );
     const chatHistory = historyRes.rows.reverse();
 
+    const formatDate = (d: any) => {
+      if (!d) return 'N/A';
+      if (typeof d === 'string') return d.split('T')[0];
+      if (d instanceof Date) return d.toISOString().split('T')[0];
+      return String(d);
+    };
+
     // 6. Build the prompt for Groq
     let context = `Active User Details:
 Name: ${employee.name}
@@ -151,10 +158,10 @@ Role: ${employee.role}
 Department: ${employee.department_name || 'N/A'}
 
 Recent Shifts:
-${shifts.map(s => `- Date: ${s.date.toISOString().split('T')[0]}, Hours: ${s.start_time} - ${s.end_time}, Status: ${s.status}`).join('\n') || 'No shifts found.'}
+${shifts.map(s => `- Date: ${formatDate(s.date)}, Hours: ${s.start_time} - ${s.end_time}, Status: ${s.status}`).join('\n') || 'No shifts found.'}
 
 Latest Payslip Data:
-${payroll ? `- Period: ${payroll.period_start.toISOString().split('T')[0]} to ${payroll.period_end.toISOString().split('T')[0]}
+${payroll ? `- Period: ${formatDate(payroll.period_start)} to ${formatDate(payroll.period_end)}
   - Regular Hours: ${payroll.regular_hours}
   - Overtime Hours: ${payroll.overtime_hours}
   - Gross Pay: $${payroll.gross_pay}

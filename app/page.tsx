@@ -17,6 +17,7 @@ import {
   Loader2, Terminal, ArrowRight, ShieldCheck, Cpu, 
   Users, CheckCircle2, ChevronRight, BarChart3, Menu, X
 } from 'lucide-react';
+import LeaveManager from '@/components/leave-manager';
 import { Button } from '@/components/ui/button';
 
 export default function Home() {
@@ -392,6 +393,8 @@ export default function Home() {
         return <EmployeeDirectory role={role} userId={userId} />;
       case 'scheduler':
         return <ShiftScheduler role={role} userId={userId} userName={userName} />;
+      case 'leave':
+        return <LeaveManager role={role} userId={userId} userName={userName} />;
       case 'payroll':
         return <PayrollCenter role={role} userId={userId} userName={userName} />;
       case 'fraud':
@@ -402,7 +405,7 @@ export default function Home() {
   };
 
   return (
-    <div className="flex-1 flex flex-col min-h-screen">
+    <div className="h-screen w-screen overflow-hidden flex flex-col">
       <DashboardLayout
         currentTab={currentTab}
         setCurrentTab={setCurrentTab}

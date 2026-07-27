@@ -137,6 +137,13 @@ export async function POST(request: Request) {
           [vectorString, employee_id]
         );
 
+        if (!matchRes.rows || matchRes.rows.length === 0) {
+          return NextResponse.json(
+            { success: false, error: 'Biometric scan failed: No active face embedding record found for this employee.' },
+            { status: 400 }
+          );
+        }
+
         const faceDistance = parseFloat(matchRes.rows[0].distance);
         console.log(`Face match distance: ${faceDistance}`);
 

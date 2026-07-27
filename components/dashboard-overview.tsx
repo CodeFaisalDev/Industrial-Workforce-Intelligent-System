@@ -177,15 +177,17 @@ export default function DashboardOverview({ role }: OverviewProps) {
   return (
     <div className="space-y-8 animate-in fade-in slide-in-from-bottom-4 duration-500">
       {/* Title Header */}
-      <div className="flex items-center justify-between">
+      <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
         <div>
           <h2 className="text-2xl font-bold tracking-tight">System Overview</h2>
           <p className="text-muted-foreground text-sm">Real-time attendance intelligence, forecasts, and payroll metrics.</p>
         </div>
-        <Button variant="outline" size="sm" onClick={fetchData} disabled={loading} className="gap-2 text-xs">
-          <RefreshCw size={14} className={loading ? 'animate-spin' : ''} />
-          Sync Live Data
-        </Button>
+        <div className="flex items-center gap-2">
+          <Button variant="outline" size="sm" onClick={fetchData} disabled={loading} className="gap-2 text-xs font-semibold">
+            <RefreshCw size={14} className={loading ? 'animate-spin' : ''} />
+            Sync Live Data
+          </Button>
+        </div>
       </div>
 
       {/* KPI Cards Grid */}
@@ -207,7 +209,7 @@ export default function DashboardOverview({ role }: OverviewProps) {
         {/* Completed Shifts */}
         <Card className="glass-panel relative overflow-hidden bg-card/40">
           <CardHeader className="flex flex-row items-center justify-between pb-2 space-y-0">
-            <CardTitle className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">Today's Completions</CardTitle>
+            <CardTitle className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">Today&apos;s Completions</CardTitle>
             <CheckCircle2 className="h-4 w-4 text-emerald-500" />
           </CardHeader>
           <CardContent>
@@ -254,7 +256,7 @@ export default function DashboardOverview({ role }: OverviewProps) {
             <BrainCircuit size={22} className="animate-pulse" />
           </div>
           <div className="space-y-1">
-            <h3 className="text-sm font-semibold tracking-tight">Tomorrow's AI Predictive Staffing Forecast</h3>
+            <h3 className="text-sm font-semibold tracking-tight">Tomorrow&apos;s AI Predictive Staffing Forecast</h3>
             {forecast ? (
               <p className="text-xs text-muted-foreground leading-relaxed">
                 <span className="font-semibold text-foreground">

@@ -221,6 +221,20 @@ export async function initDatabase() {
     );
   `);
 
+  // Leave Requests Table
+  await db.query(`
+    CREATE TABLE IF NOT EXISTS leave_requests (
+      id SERIAL PRIMARY KEY,
+      employee_id INTEGER NOT NULL REFERENCES employees(id) ON DELETE CASCADE,
+      leave_type VARCHAR(50) NOT NULL,
+      start_date DATE NOT NULL,
+      end_date DATE NOT NULL,
+      reason TEXT NOT NULL,
+      status VARCHAR(50) NOT NULL DEFAULT 'Pending',
+      created_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP
+    );
+  `);
+
   console.log('All database tables verified/created.');
 
   // 3. Seed initial mock data if tables are empty
@@ -286,19 +300,17 @@ export async function initDatabase() {
       'INSERT INTO employees (name, email, role, department_id, status, password, company_id) VALUES ($1, $2, $3, $4, $5, $6, $7)',
       ['Robiul Islam', 'robi@factory.com', 'Worker', 3, 'Active', workerHash, companyId]
     );
-  } else {
-    // Update emails and passwords for existing employees to ensure they match request
+    // Update emails and passwords for default seeded employees to ensure credentials match
     console.log('Updating emails and passwords for existing admin, manager, and workers in init-db.ts...');
     await db.query(`
-      UPDATE employees SET name = 'Prithula', email = 'admin@gmail.com', password = $1 WHERE role = 'HR Admin';
+      UPDATE employees SET name = 'Prithula', password = $1 WHERE email = 'admin@gmail.com';
     `, [kafiHash]);
     await db.query(`
-      UPDATE employees SET name = 'Nazmul Hasan', email = 'manager@gmail.com', password = $1 WHERE role = 'Floor Manager';
+      UPDATE employees SET name = 'Nazmul Hasan', password = $1 WHERE email = 'manager@gmail.com';
     `, [managerHash]);
     await db.query(`
-      UPDATE employees SET name = 'Faria Sultana', email = 'worker@gmail.com', password = $1 WHERE email = 'worker@gmail.com';
+      UPDATE employees SET name = 'Faria Sultana', password = $1 WHERE email = 'worker@gmail.com';
     `, [workerHash]);
-  }
 
   const kbCount = await db.query('SELECT COUNT(*) FROM chatbot_knowledge_base');
   if (parseInt(kbCount.rows[0].count, 10) === 0) {
@@ -433,5 +445,5 @@ export async function initDatabase() {
   }
 
   console.log('Database initialization and seeding completed successfully!');
+  }
 }
-export default initDatabase;

@@ -36,7 +36,6 @@ export default function ShiftScheduler({ role, userId, userName }: SchedulerProp
 
   const fetchData = async () => {
     try {
-      setLoading(true);
       // Fetch employees to assign
       const empRes = await fetch('/api/employees');
       const empData = await empRes.json();
@@ -140,8 +139,6 @@ export default function ShiftScheduler({ role, userId, userName }: SchedulerProp
       console.error('Failed to submit shift swap request:', error);
     }
   };
-
-  const daysOfWeek = ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday', 'Sunday'];
 
   return (
     <div className="space-y-6 animate-in fade-in slide-in-from-bottom-4 duration-500">
@@ -328,7 +325,7 @@ export default function ShiftScheduler({ role, userId, userName }: SchedulerProp
                     <Badge variant="outline" className="text-[9px] py-0 font-bold uppercase">{s.status}</Badge>
                   </div>
                   <p className="text-muted-foreground text-[11px]">
-                    Wants to swap shift on <span className="font-semibold">{s.date} ({s.shift})</span> due to: "{s.reason}"
+                    Wants to swap shift on <span className="font-semibold">{s.date} ({s.shift})</span> due to: &quot;{s.reason}&quot;
                   </p>
                 </div>
                 {s.status === 'Pending' ? (

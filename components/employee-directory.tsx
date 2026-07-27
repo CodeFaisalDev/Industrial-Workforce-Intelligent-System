@@ -13,7 +13,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '.
 import { Badge } from './ui/badge';
 import { 
   Users, UserPlus, Camera, ScanFace, TrendingUp,
-  CheckCircle2, XCircle, Award, UserCheck
+  CheckCircle2, XCircle, Award, UserCheck, Search
 } from 'lucide-react';
 
 interface DirectoryProps {
@@ -25,6 +25,10 @@ export default function EmployeeDirectory({ role: userRole, userId }: DirectoryP
   const [employees, setEmployees] = useState<any[]>([]);
   const [departments, setDepartments] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
+  
+  // Instant search & filter state
+  const [searchQuery, setSearchQuery] = useState('');
+  const [filterDept, setFilterDept] = useState('ALL');
   
   // Form states
   const [role, setRole] = useState('Worker');
@@ -54,38 +58,6 @@ export default function EmployeeDirectory({ role: userRole, userId }: DirectoryP
   const fetchData = async () => {
     try {
       setLoading(true);
-      const empRes = await fetch('/api/payroll'); // Gets all employees with department data
-      const empData = await empRes.json();
-      
-      // Filter unique employees from the payroll ledger lookup OR fetch directly from employees if needed
-      // For simplicity, we can do a query to select employees from our seed
-      const seedEmpRes = await fetch('/api/attendance'); // fallback or helper
-      // Let's do a direct fetch of employees using a database query in our API.
-      // Wait, we can fetch employees by making a query. Let's create an endpoint or reuse `/api/payroll` which queries employees.
-      // Actually, let's write a simple query helper on GET `/api/attendance` that lists logs, or we can use our payroll data.
-      // Wait! Let's check: GET `/api/payroll` returns `payroll: result.rows` which contains the payroll ledger.
-      // Let's make sure we query employees. Let's create a custom select query.
-      // Let's call GET to `/api/payroll` which gets all payroll ledgers.
-      // Let's fetch the list of employees directly using a fetch to `/api/attendance` which returns the logs, or we can write a clean query.
-      // Let's create a specific fetch query inside the client:
-      const res = await fetch('/api/payroll');
-      const data = await res.json();
-      
-      // Let's query employees directly from the database by running a quick GET request.
-      // Wait, our API `/api/payroll` has a GET handler:
-      // "SELECT p.*, e.name as employee_name, e.email as employee_email, e.role as employee_role, d.name as department_name FROM payroll_ledgers p..."
-      // But what if employees don't have a payroll ledger entry yet?
-      // Let's make a fetch to `/api/attendance` which has a GET handler, or we can execute a query to list all employees!
-      // Let's add a quick check. We can call `/api/performance` which calculates or returns scores for workers.
-      // Let's fetch all employees from `/api/attendance`. The GET in `/api/attendance` selects from biometric_logs but we can adjust it or fetch from employees.
-      // Wait! Let's check `/api/attendance` GET handler:
-      // "SELECT b.*, e.name as employee_name, e.role as employee_role FROM biometric_logs b JOIN employees e ON b.employee_id = e.id..."
-      // Let's write a direct employee fetch in employee-directory. We can call `/api/payroll` or write a separate GET endpoint if needed, or query employees.
-      // Let's check if we can query them from an endpoint. Let's see: we can query employees from `/api/payroll` or create a direct route or query departments as well.
-      // Wait, let's write a client-side fetch.
-      // Let's fetch departments and employees. Where do we get employees?
-      // Let's make an API call to a new endpoint `/api/employees`? Or we can just add a query parameter to `/api/attendance?all=true` or write an endpoint `/api/employees/route.ts` which is very clean!
-      // Yes, let's create a small `/api/employees/route.ts` to return all employees and departments. This is extremely robust!
       const empResponse = await fetch('/api/employees');
       const empDataResult = await empResponse.json();
       setEmployees(empDataResult.employees || []);
@@ -268,10 +240,19 @@ export default function EmployeeDirectory({ role: userRole, userId }: DirectoryP
     }
   };
 
+  const filteredEmployees = employees.filter((emp) => {
+    const matchesSearch =
+      emp.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
+      emp.email.toLowerCase().includes(searchQuery.toLowerCase()) ||
+      emp.role.toLowerCase().includes(searchQuery.toLowerCase());
+    const matchesDept = filterDept === 'ALL' || emp.department_id?.toString() === filterDept;
+    return matchesSearch && matchesDept;
+  });
+
   return (
     <div className="space-y-6 animate-in fade-in slide-in-from-bottom-4 duration-500">
       {/* Title Header */}
-      <div className="flex items-center justify-between">
+      <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
         <div>
           <h2 className="text-2xl font-bold tracking-tight">Employees</h2>
           <p className="text-muted-foreground text-sm">Register workers, view scorecards, and enroll facial biometric data.</p>
@@ -342,6 +323,36 @@ export default function EmployeeDirectory({ role: userRole, userId }: DirectoryP
         </Dialog>
       </div>
 
+      {/* Employees Search & Filter Bar */}
+      <Card className="glass-panel bg-card/30 p-4">
+        <div className="flex flex-col sm:flex-row items-center gap-3">
+          <div className="relative flex-1 w-full">
+            <Search className="absolute left-3 top-2.5 h-4 w-4 text-muted-foreground" />
+            <Input
+              placeholder="Search by worker name, email, or role..."
+              value={searchQuery}
+              onChange={(e) => setSearchQuery(e.target.value)}
+              className="pl-9 text-xs h-9 bg-secondary/10 border-border/80"
+            />
+          </div>
+          <div className="w-full sm:w-48">
+            <Select value={filterDept} onValueChange={(val) => { if (val) setFilterDept(val); }}>
+              <SelectTrigger className="text-xs h-9 bg-secondary/10 border-border/80">
+                <SelectValue placeholder="Filter Department" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="ALL" className="text-xs">All Departments</SelectItem>
+                {departments.map((d) => (
+                  <SelectItem key={d.id} value={d.id.toString()} className="text-xs">
+                    {d.name}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+          </div>
+        </div>
+      </Card>
+
       {/* Employees Table Card */}
       <Card className="glass-panel bg-card/30">
         <CardContent className="p-0 overflow-x-auto w-full">
@@ -363,8 +374,8 @@ export default function EmployeeDirectory({ role: userRole, userId }: DirectoryP
                       Loading workforce directory...
                     </TableCell>
                   </TableRow>
-                ) : employees.length > 0 ? (
-                  employees.map((emp) => (
+                ) : filteredEmployees.length > 0 ? (
+                  filteredEmployees.map((emp) => (
                     <TableRow key={emp.id} className="hover:bg-secondary/20">
                       <TableCell className="font-semibold py-4">
                         <div className="text-xs font-bold text-foreground">{emp.name}</div>

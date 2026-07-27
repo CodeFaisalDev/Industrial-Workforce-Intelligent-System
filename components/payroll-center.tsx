@@ -8,7 +8,7 @@ import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } f
 import { Badge } from './ui/badge';
 import { Input } from './ui/input';
 import { Label } from './ui/label';
-import { DollarSign, Printer, Calculator, FileText, CheckCircle2, TrendingUp } from 'lucide-react';
+import { DollarSign, Printer, Calculator, FileText, CheckCircle2, TrendingUp, Download } from 'lucide-react';
 
 interface PayrollProps {
   role: string;
@@ -20,6 +20,30 @@ export default function PayrollCenter({ role, userId, userName }: PayrollProps) 
   const [payrollList, setPayrollList] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
   const [computing, setComputing] = useState(false);
+
+  // Export Payroll to CSV
+  const handleExportCSV = () => {
+    if (!payrollList || payrollList.length === 0) return;
+    const headers = ['Employee ID', 'Employee Name', 'Period Start', 'Period End', 'Regular Hours', 'Overtime Hours', 'Gross Pay ($)'];
+    const rows = payrollList.map(p => [
+      p.employee_id,
+      `"${p.employee_name || 'Worker'}"`,
+      p.period_start?.split('T')[0],
+      p.period_end?.split('T')[0],
+      p.regular_hours,
+      p.overtime_hours,
+      p.gross_pay
+    ]);
+    const csvContent = [headers.join(','), ...rows.map(r => r.join(','))].join('\n');
+    const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
+    const url = URL.createObjectURL(blob);
+    const link = document.createElement('a');
+    link.href = url;
+    link.setAttribute('download', `Payroll_Register_${new Date().toISOString().split('T')[0]}.csv`);
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+  };
 
   // Period forms
   const [start, setStart] = useState('2026-06-01');
@@ -84,11 +108,15 @@ export default function PayrollCenter({ role, userId, userName }: PayrollProps) 
   return (
     <div className="space-y-6 animate-in fade-in slide-in-from-bottom-4 duration-500">
       {/* Title Header */}
-      <div className="flex items-center justify-between">
+      <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
         <div>
           <h2 className="text-2xl font-bold tracking-tight">Payroll Center</h2>
           <p className="text-muted-foreground text-sm">Review payroll ledgers, run billing calculations, and view digital payslips.</p>
         </div>
+        <Button variant="outline" size="sm" onClick={handleExportCSV} disabled={payrollList.length === 0} className="gap-2 text-xs font-semibold">
+          <Download size={14} />
+          Export Payroll CSV
+        </Button>
       </div>
 
       {/* Compute Payroll Control Form (HR Admin only) */}

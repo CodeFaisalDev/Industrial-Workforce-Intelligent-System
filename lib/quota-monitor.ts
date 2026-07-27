@@ -6,7 +6,7 @@ export interface QuotaStatus {
   lastUpdated: number;
 }
 
-let lastKnownQuotaStatus: QuotaStatus = {
+const lastKnownQuotaStatus: QuotaStatus = {
   requestsRemaining: 9999,
   tokensRemaining: 9999,
   resetRequests: '0s',
