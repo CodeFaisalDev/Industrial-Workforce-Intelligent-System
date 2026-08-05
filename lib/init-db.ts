@@ -274,15 +274,15 @@ export async function initDatabase() {
     console.log('Seeding initial employees...');
     await db.query(
       'INSERT INTO employees (name, email, role, department_id, status, password, company_id) VALUES ($1, $2, $3, $4, $5, $6, $7)',
-      ['Prithula', 'admin@gmail.com', 'HR Admin', null, 'Active', kafiHash, companyId]
+      ['Prithula', 'admin@industrialintel.com', 'HR Admin', null, 'Active', kafiHash, companyId]
     );
     await db.query(
       'INSERT INTO employees (name, email, role, department_id, status, password, company_id) VALUES ($1, $2, $3, $4, $5, $6, $7)',
-      ['Nazmul Hasan', 'manager@gmail.com', 'Floor Manager', 4, 'Active', managerHash, companyId]
+      ['Nazmul Hasan', 'manager@industrialintel.com', 'Floor Manager', 4, 'Active', managerHash, companyId]
     );
     await db.query(
       'INSERT INTO employees (name, email, role, department_id, status, password, company_id) VALUES ($1, $2, $3, $4, $5, $6, $7)',
-      ['Faria Sultana', 'worker@gmail.com', 'Worker', 1, 'Active', workerHash, companyId]
+      ['Faria Sultana', 'worker@industrialintel.com', 'Worker', 1, 'Active', workerHash, companyId]
     );
     await db.query(
       'INSERT INTO employees (name, email, role, department_id, status, password, company_id) VALUES ($1, $2, $3, $4, $5, $6, $7)',
@@ -303,13 +303,13 @@ export async function initDatabase() {
     // Update emails and passwords for default seeded employees to ensure credentials match
     console.log('Updating emails and passwords for existing admin, manager, and workers in init-db.ts...');
     await db.query(`
-      UPDATE employees SET name = 'Prithula', password = $1 WHERE email = 'admin@gmail.com';
+      UPDATE employees SET name = 'Prithula', password = $1, email = 'admin@industrialintel.com' WHERE email IN ('admin@gmail.com', 'admin@industrialintel.com');
     `, [kafiHash]);
     await db.query(`
-      UPDATE employees SET name = 'Nazmul Hasan', password = $1 WHERE email = 'manager@gmail.com';
+      UPDATE employees SET name = 'Nazmul Hasan', password = $1, email = 'manager@industrialintel.com' WHERE email IN ('manager@gmail.com', 'manager@industrialintel.com');
     `, [managerHash]);
     await db.query(`
-      UPDATE employees SET name = 'Faria Sultana', password = $1 WHERE email = 'worker@gmail.com';
+      UPDATE employees SET name = 'Faria Sultana', password = $1, email = 'worker@industrialintel.com' WHERE email IN ('worker@gmail.com', 'worker@industrialintel.com');
     `, [workerHash]);
 
   const kbCount = await db.query('SELECT COUNT(*) FROM chatbot_knowledge_base');
@@ -419,7 +419,7 @@ export async function initDatabase() {
   const swapCount = await db.query('SELECT COUNT(*) FROM shift_swaps');
   if (parseInt(swapCount.rows[0].count, 10) === 0) {
     console.log('Seeding initial shift swap request...');
-    const faria = await db.query("SELECT id FROM employees WHERE email = 'worker@gmail.com'");
+    const faria = await db.query("SELECT id FROM employees WHERE email = 'worker@industrialintel.com'");
     if (faria.rows.length > 0) {
       await db.query(`
         INSERT INTO shift_swaps (employee_id, employee_name, date, shift, reason, status)
@@ -431,7 +431,7 @@ export async function initDatabase() {
   const accessCount = await db.query('SELECT COUNT(*) FROM manager_worker_access');
   if (parseInt(accessCount.rows[0].count, 10) === 0) {
     console.log('Seeding initial manager-worker access mappings...');
-    const manager = await db.query("SELECT id FROM employees WHERE email = 'manager@gmail.com'");
+    const manager = await db.query("SELECT id FROM employees WHERE email = 'manager@industrialintel.com'");
     if (manager.rows.length > 0) {
       const workers = await db.query("SELECT id FROM employees WHERE role = 'Worker'");
       for (const w of workers.rows) {

@@ -77,13 +77,13 @@ function LoginForm() {
     setActiveRole(role);
     setError('');
     if (role === 'admin') {
-      setEmail('admin@gmail.com');
+      setEmail('admin@industrialintel.com');
       setPassword('admin123');
     } else if (role === 'manager') {
-      setEmail('manager@gmail.com');
+      setEmail('manager@industrialintel.com');
       setPassword('manager123');
     } else {
-      setEmail('worker@gmail.com');
+      setEmail('worker@industrialintel.com');
       setPassword('worker123');
     }
   };
@@ -169,7 +169,7 @@ function LoginForm() {
             <Input
               id="email"
               type="email"
-              placeholder="admin@gmail.com"
+              placeholder="admin@industrialintel.com"
               value={email}
               onChange={(e) => setEmail(e.target.value)}
               className="pl-10 text-xs h-10 bg-secondary/20 hover:bg-secondary/35 focus:bg-background border-border/80 focus-visible:ring-2 focus-visible:ring-primary/40 focus-visible:border-primary transition-all rounded-xl"

@@ -312,15 +312,15 @@ async function run() {
     console.log('Seeding employees (Admin, Manager, Workers)...');
     await client.query(
       'INSERT INTO employees (name, email, role, department_id, status, password, company_id) VALUES ($1, $2, $3, $4, $5, $6, $7)',
-      ['Prithula', 'admin@gmail.com', 'HR Admin', null, 'Active', kafiHash, companyId]
+      ['Prithula', 'admin@industrialintel.com', 'HR Admin', null, 'Active', kafiHash, companyId]
     );
     await client.query(
       'INSERT INTO employees (name, email, role, department_id, status, password, company_id) VALUES ($1, $2, $3, $4, $5, $6, $7)',
-      ['Nazmul Hasan', 'manager@gmail.com', 'Floor Manager', 4, 'Active', managerHash, companyId]
+      ['Nazmul Hasan', 'manager@industrialintel.com', 'Floor Manager', 4, 'Active', managerHash, companyId]
     );
     await client.query(
       'INSERT INTO employees (name, email, role, department_id, status, password, company_id) VALUES ($1, $2, $3, $4, $5, $6, $7)',
-      ['Faria Sultana', 'worker@gmail.com', 'Worker', 1, 'Active', workerHash, companyId]
+      ['Faria Sultana', 'worker@industrialintel.com', 'Worker', 1, 'Active', workerHash, companyId]
     );
     await client.query(
       'INSERT INTO employees (name, email, role, department_id, status, password, company_id) VALUES ($1, $2, $3, $4, $5, $6, $7)',
@@ -395,7 +395,7 @@ async function run() {
     const leaveCount = await client.query('SELECT COUNT(*) FROM leave_requests');
     if (parseInt(leaveCount.rows[0].count, 10) === 0) {
       console.log('Seeding sample leave requests...');
-      const workerRes = await client.query("SELECT id FROM employees WHERE email = 'worker@gmail.com'");
+      const workerRes = await client.query("SELECT id FROM employees WHERE email = 'worker@industrialintel.com'");
       if (workerRes.rows.length > 0) {
         const workerId = workerRes.rows[0].id;
         await client.query(
