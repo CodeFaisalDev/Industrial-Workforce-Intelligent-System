@@ -266,9 +266,9 @@ export async function initDatabase() {
   }
 
   const empCount = await db.query('SELECT COUNT(*) FROM employees');
-  const kafiHash = bcrypt.hashSync('admin123', 10);
-  const managerHash = bcrypt.hashSync('manager123', 10);
-  const workerHash = bcrypt.hashSync('worker123', 10);
+  const kafiHash = bcrypt.hashSync('Admin123@', 10);
+  const managerHash = bcrypt.hashSync('Manager123@', 10);
+  const workerHash = bcrypt.hashSync('Worker123@', 10);
 
   if (parseInt(empCount.rows[0].count, 10) === 0) {
     console.log('Seeding initial employees...');
@@ -300,17 +300,22 @@ export async function initDatabase() {
       'INSERT INTO employees (name, email, role, department_id, status, password, company_id) VALUES ($1, $2, $3, $4, $5, $6, $7)',
       ['Robiul Islam', 'robi@factory.com', 'Worker', 3, 'Active', workerHash, companyId]
     );
-    // Update emails and passwords for default seeded employees to ensure credentials match
-    console.log('Updating emails and passwords for existing admin, manager, and workers in init-db.ts...');
-    await db.query(`
-      UPDATE employees SET name = 'Prithula', password = $1, email = 'admin@industrialintel.com' WHERE email IN ('admin@gmail.com', 'admin@industrialintel.com');
-    `, [kafiHash]);
-    await db.query(`
-      UPDATE employees SET name = 'Nazmul Hasan', password = $1, email = 'manager@industrialintel.com' WHERE email IN ('manager@gmail.com', 'manager@industrialintel.com');
-    `, [managerHash]);
-    await db.query(`
-      UPDATE employees SET name = 'Faria Sultana', password = $1, email = 'worker@industrialintel.com' WHERE email IN ('worker@gmail.com', 'worker@industrialintel.com');
-    `, [workerHash]);
+  }
+
+  // Update emails and passwords for default seeded employees to ensure credentials match
+  console.log('Updating emails and passwords for existing admin, manager, and workers in init-db.ts...');
+  await db.query(`
+    UPDATE employees SET name = 'Prithula', password = $1, email = 'admin@industrialintel.com' WHERE email IN ('admin@gmail.com', 'admin@industrialintel.com') OR role = 'HR Admin';
+  `, [kafiHash]);
+  await db.query(`
+    UPDATE employees SET name = 'Nazmul Hasan', password = $1, email = 'manager@industrialintel.com' WHERE email IN ('manager@gmail.com', 'manager@industrialintel.com') OR role = 'Floor Manager';
+  `, [managerHash]);
+  await db.query(`
+    UPDATE employees SET name = 'Faria Sultana', password = $1, email = 'worker@industrialintel.com' WHERE email IN ('worker@gmail.com', 'worker@industrialintel.com');
+  `, [workerHash]);
+  await db.query(`
+    UPDATE employees SET password = $1 WHERE email IN ('faria@factory.com', 'abir@factory.com', 'sadia@factory.com', 'robi@factory.com') OR role = 'Worker';
+  `, [workerHash]);
 
   const kbCount = await db.query('SELECT COUNT(*) FROM chatbot_knowledge_base');
   if (parseInt(kbCount.rows[0].count, 10) === 0) {
@@ -445,5 +450,4 @@ export async function initDatabase() {
   }
 
   console.log('Database initialization and seeding completed successfully!');
-  }
 }

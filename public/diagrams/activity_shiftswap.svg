@@ -1,0 +1,126 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1400 950" width="100%" height="100%" style="background:#ffffff; font-family: 'Segoe UI', -apple-system, BlinkMacSystemFont, Roboto, sans-serif;">
+      <defs>
+        <marker id="swap-arr" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
+          <path d="M 0 1 L 10 5 L 0 9 z" fill="#0f172a" />
+        </marker>
+        <filter id="swap-shadow" x="-5%" y="-5%" width="115%" height="115%">
+          <feDropShadow dx="2" dy="2" stdDeviation="3" flood-opacity="0.08" />
+        </filter>
+      </defs>
+
+      <!-- Background Grid -->
+      <pattern id="swap-grid" width="40" height="40" patternUnits="userSpaceOnUse">
+        <path d="M 40 0 L 0 0 0 40" fill="none" stroke="#f1f5f9" stroke-width="1"/>
+      </pattern>
+      <rect width="1400" height="950" fill="url(#swap-grid)" />
+
+      <!-- TITLE -->
+      <text x="700" y="34" text-anchor="middle" font-size="21" font-weight="800" fill="#0f172a" letter-spacing="0.5">
+        UML ACTIVITY SPECIFICATION: SHIFT SCHEDULING &amp; PEER SWAP WORKFLOW
+      </text>
+      <text x="700" y="54" text-anchor="middle" font-size="12" fill="#64748b" font-weight="500">
+        Asynchronous Proposal, Floor Manager Authorization Gate &amp; Atomic Roster Schedule Swap Protocol
+      </text>
+
+      <!-- ================= SWIMLANES (4 PARTITIONS) ================= -->
+      <!-- Lane 1: Proposing Worker -->
+      <rect x="60" y="75" width="290" height="850" fill="#ffffff" stroke="#cbd5e1" stroke-width="1.5"/>
+      <rect x="60" y="75" width="290" height="35" fill="#1e293b"/>
+      <text x="205" y="98" text-anchor="middle" font-size="12" font-weight="800" fill="#38bdf8">SWIMLANE: PROPOSING WORKER (FARIA)</text>
+
+      <!-- Lane 2: Next.js Scheduler Service -->
+      <rect x="350" y="75" width="340" height="850" fill="#f8fafc" stroke="#cbd5e1" stroke-width="1.5"/>
+      <rect x="350" y="75" width="340" height="35" fill="#1e293b"/>
+      <text x="520" y="98" text-anchor="middle" font-size="12" font-weight="800" fill="#38bdf8">SWIMLANE: SCHEDULER &amp; SWAP API</text>
+
+      <!-- Lane 3: Floor Manager -->
+      <rect x="690" y="75" width="330" height="850" fill="#ffffff" stroke="#cbd5e1" stroke-width="1.5"/>
+      <rect x="690" y="75" width="330" height="35" fill="#1e293b"/>
+      <text x="855" y="98" text-anchor="middle" font-size="12" font-weight="800" fill="#c084fc">SWIMLANE: FLOOR MANAGER (NAZMUL)</text>
+
+      <!-- Lane 4: PostgreSQL Shifts Store -->
+      <rect x="1020" y="75" width="320" height="850" fill="#f8fafc" stroke="#cbd5e1" stroke-width="1.5"/>
+      <rect x="1020" y="75" width="320" height="35" fill="#1e293b"/>
+      <text x="1180" y="98" text-anchor="middle" font-size="12" font-weight="800" fill="#34d399">SWIMLANE: POSTGRESQL SHIFT STORE</text>
+
+      <!-- ================= ACTIVITIES ================= -->
+      <!-- Start Node -->
+      <circle cx="205" cy="145" r="14" fill="#0f172a"/>
+      <line x1="205" y1="159" x2="205" y2="195" stroke="#0f172a" stroke-width="2" marker-end="url(#swap-arr)"/>
+
+      <!-- Worker views calendar -->
+      <rect x="105" y="195" width="200" height="45" rx="8" fill="#ffffff" stroke="#3b82f6" stroke-width="1.8" filter="url(#swap-shadow)"/>
+      <text x="205" y="214" text-anchor="middle" font-size="10.5" font-weight="700" fill="#0f172a">Inspect Weekly Schedule</text>
+      <text x="205" y="228" text-anchor="middle" font-size="9" fill="#64748b">Identifies Conflict on Target Date</text>
+
+      <line x1="205" y1="240" x2="205" y2="280" stroke="#0f172a" stroke-width="2" marker-end="url(#swap-arr)"/>
+
+      <!-- Worker clicks Request Swap -->
+      <rect x="105" y="280" width="200" height="50" rx="8" fill="#ffffff" stroke="#3b82f6" stroke-width="1.8" filter="url(#swap-shadow)"/>
+      <text x="205" y="299" text-anchor="middle" font-size="10.5" font-weight="700" fill="#0f172a">Submit Swap Request Dialog</text>
+      <text x="205" y="313" text-anchor="middle" font-size="9" fill="#64748b">Inputs Target Shift, Date &amp; Reason</text>
+
+      <!-- Link to Scheduler API -->
+      <path d="M 305 305 L 420 305" stroke="#0f172a" stroke-width="2" marker-end="url(#swap-arr)"/>
+
+      <!-- API Validates -->
+      <rect x="420" y="280" width="200" height="50" rx="8" fill="#ffffff" stroke="#2563eb" stroke-width="1.8" filter="url(#swap-shadow)"/>
+      <text x="520" y="299" text-anchor="middle" font-size="10.5" font-weight="700" fill="#0f172a">POST /api/shifts/swap</text>
+      <text x="520" y="313" text-anchor="middle" font-size="9" fill="#64748b">Validates Company Multi-Tenancy</text>
+
+      <!-- API to DB: Insert Pending -->
+      <path d="M 620 305 L 1100 305" stroke="#0f172a" stroke-width="2" marker-end="url(#swap-arr)"/>
+
+      <rect x="1100" y="280" width="180" height="50" rx="8" fill="#ffffff" stroke="#059669" stroke-width="1.8" filter="url(#swap-shadow)"/>
+      <text x="1190" y="299" text-anchor="middle" font-size="10.5" font-weight="700" fill="#065f46">INSERT INTO shift_swaps</text>
+      <text x="1190" y="313" text-anchor="middle" font-size="9" fill="#047857">status = 'Pending'</text>
+
+      <!-- Alert Floor Manager -->
+      <path d="M 1190 330 L 1190 400 L 855 400" fill="none" stroke="#0f172a" stroke-width="2" marker-end="url(#swap-arr)"/>
+
+      <!-- Manager Reviews in Scheduler -->
+      <rect x="755" y="380" width="200" height="50" rx="8" fill="#ffffff" stroke="#a855f7" stroke-width="1.8" filter="url(#swap-shadow)"/>
+      <text x="855" y="399" text-anchor="middle" font-size="10.5" font-weight="700" fill="#581c87">Manager Reviews Proposals</text>
+      <text x="855" y="413" text-anchor="middle" font-size="9" fill="#6b21a8">Inspects Roster Coverage &amp; Standby</text>
+
+      <line x1="855" y1="430" x2="855" y2="475" stroke="#0f172a" stroke-width="2" marker-end="url(#swap-arr)"/>
+
+      <!-- Manager Decision -->
+      <polygon points="855,475 905,505 855,535 805,505" fill="#fffbeb" stroke="#d97706" stroke-width="1.8"/>
+      <text x="855" y="509" text-anchor="middle" font-size="9" font-weight="700" fill="#92400e">Authorize?</text>
+
+      <!-- REJECT PATH -->
+      <path d="M 805 505 L 520 505 L 520 560" fill="none" stroke="#dc2626" stroke-width="2" marker-end="url(#swap-arr)"/>
+      <text x="660" y="498" font-size="9" font-weight="700" fill="#dc2626">[Rejected]</text>
+
+      <rect x="420" y="560" width="200" height="50" rx="8" fill="#fef2f2" stroke="#ef4444" stroke-width="1.8"/>
+      <text x="520" y="579" text-anchor="middle" font-size="10.5" font-weight="700" fill="#991b1b">PUT status = 'Rejected'</text>
+      <text x="520" y="593" text-anchor="middle" font-size="9" fill="#b91c1c">Notify Worker of Refusal</text>
+
+      <path d="M 420 585 L 205 585 L 205 640" fill="none" stroke="#dc2626" stroke-width="2" marker-end="url(#swap-arr)"/>
+      <rect x="105" y="640" width="200" height="40" rx="8" fill="#ffffff" stroke="#ef4444" stroke-width="1.8"/>
+      <text x="205" y="658" text-anchor="middle" font-size="10" font-weight="700" fill="#991b1b">Worker Keeps Original Shift</text>
+      <text x="205" y="671" text-anchor="middle" font-size="8.5" fill="#b91c1c">Proposal marked Rejected</text>
+
+      <!-- AUTHORIZE PATH -->
+      <path d="M 905 505 L 1190 505 L 1190 560" fill="none" stroke="#16a34a" stroke-width="2" marker-end="url(#swap-arr)"/>
+      <text x="1040" y="498" font-size="9" font-weight="700" fill="#16a34a">[Authorized]</text>
+
+      <!-- Atomic DB Transaction -->
+      <rect x="1080" y="560" width="220" height="65" rx="8" fill="#f0fdf4" stroke="#16a34a" stroke-width="1.8" filter="url(#swap-shadow)"/>
+      <text x="1190" y="580" text-anchor="middle" font-size="10.5" font-weight="700" fill="#14532d">Execute Atomic SQL Transaction</text>
+      <text x="1190" y="595" text-anchor="middle" font-size="9" fill="#15803d">1. Update shifts SET employee_id = peer</text>
+      <text x="1190" y="610" text-anchor="middle" font-size="9" fill="#15803d">2. Update shift_swaps SET status = 'Authorized'</text>
+
+      <!-- Broadcast to Workers -->
+      <path d="M 1190 625 L 1190 730 L 205 730" fill="none" stroke="#16a34a" stroke-width="2" marker-end="url(#swap-arr)"/>
+
+      <rect x="105" y="710" width="200" height="50" rx="8" fill="#f0fdf4" stroke="#16a34a" stroke-width="1.8" filter="url(#swap-shadow)"/>
+      <text x="205" y="729" text-anchor="middle" font-size="10.5" font-weight="700" fill="#14532d">Updated Calendar Rendered</text>
+      <text x="205" y="743" text-anchor="middle" font-size="9" fill="#15803d">Both Personnel Synced Real-Time</text>
+
+      <!-- End Node -->
+      <line x1="205" y1="760" x2="205" y2="820" stroke="#0f172a" stroke-width="2" marker-end="url(#swap-arr)"/>
+      <circle cx="205" cy="834" r="14" fill="#ffffff" stroke="#0f172a" stroke-width="2"/>
+      <circle cx="205" cy="834" r="8" fill="#0f172a"/>
+    </svg>

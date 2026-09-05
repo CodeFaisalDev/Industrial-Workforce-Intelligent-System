@@ -1,0 +1,303 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1400 950" width="100%" height="100%" style="background:#ffffff; font-family: 'Segoe UI', -apple-system, BlinkMacSystemFont, Roboto, sans-serif;">
+      <defs>
+        <marker id="cls-arr" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
+          <path d="M 0 1 L 10 5 L 0 9 z" fill="#475569" />
+        </marker>
+        <marker id="comp-diamond" viewBox="0 0 12 12" refX="0" refY="6" markerWidth="9" markerHeight="9" orient="auto">
+          <path d="M 0 6 L 6 0 L 12 6 L 6 12 z" fill="#0f172a" stroke="#0f172a" />
+        </marker>
+        <filter id="cls-shadow" x="-5%" y="-5%" width="115%" height="115%">
+          <feDropShadow dx="2" dy="2" stdDeviation="3" flood-opacity="0.08" />
+        </filter>
+      </defs>
+
+      <!-- Background Grid -->
+      <pattern id="cls-grid" width="40" height="40" patternUnits="userSpaceOnUse">
+        <path d="M 40 0 L 0 0 0 40" fill="none" stroke="#f1f5f9" stroke-width="1"/>
+      </pattern>
+      <rect width="1400" height="950" fill="url(#cls-grid)" />
+
+      <!-- TITLE -->
+      <text x="700" y="34" text-anchor="middle" font-size="21" font-weight="800" fill="#0f172a" letter-spacing="0.5">
+        UML CLASS SPECIFICATION: DOMAIN ENTITIES &amp; RELATIONAL ARCHITECTURE
+      </text>
+      <text x="700" y="54" text-anchor="middle" font-size="12" fill="#64748b" font-weight="500">
+        Multi-Tenant Relational Schema, Object Multiplicities (1..*), Biometric Vector Types &amp; Service Interfaces
+      </text>
+
+      <!-- ================= ROW 1: TIER 1 - ORGANIZATION & CORE IDENTITY ================= -->
+      <!-- 1. Company Class (Top-Left) -->
+      <g id="cls-company" filter="url(#cls-shadow)">
+        <rect x="40" y="80" width="220" height="135" rx="6" fill="#ffffff" stroke="#1e293b" stroke-width="1.8"/>
+        <rect x="40" y="80" width="220" height="28" rx="6" fill="#1e293b"/>
+        <text x="150" y="99" text-anchor="middle" font-size="12" font-weight="800" fill="#38bdf8">Company</text>
+        <text x="50" y="124" font-size="10" fill="#0f172a">+ id : Integer [PK]</text>
+        <text x="50" y="140" font-size="10" fill="#0f172a">+ name : String (unique)</text>
+        <text x="50" y="156" font-size="10" fill="#0f172a">+ created_at : Timestamp</text>
+        <line x1="40" y1="166" x2="260" y2="166" stroke="#e2e8f0" stroke-width="1"/>
+        <text x="50" y="184" font-size="9.5" fill="#475569">+ getDepartments() : List</text>
+        <text x="50" y="200" font-size="9.5" fill="#475569">+ getActiveHeadcount() : int</text>
+      </g>
+
+      <!-- 2. Department Class -->
+      <g id="cls-department" filter="url(#cls-shadow)">
+        <rect x="320" y="80" width="230" height="150" rx="6" fill="#ffffff" stroke="#1e293b" stroke-width="1.8"/>
+        <rect x="320" y="80" width="230" height="28" rx="6" fill="#1e293b"/>
+        <text x="435" y="99" text-anchor="middle" font-size="12" font-weight="800" fill="#38bdf8">Department</text>
+        <text x="330" y="124" font-size="10" fill="#0f172a">+ id : Integer [PK]</text>
+        <text x="330" y="140" font-size="10" fill="#0f172a">+ name : String</text>
+        <text x="330" y="156" font-size="10" fill="#0f172a">+ manager_id : Integer [FK]</text>
+        <text x="330" y="172" font-size="10" fill="#0f172a">+ company_id : Integer [FK]</text>
+        <line x1="320" y1="182" x2="550" y2="182" stroke="#e2e8f0" stroke-width="1"/>
+        <text x="330" y="200" font-size="9.5" fill="#475569">+ getAssignedWorkers() : List</text>
+        <text x="330" y="216" font-size="9.5" fill="#475569">+ getStaffingForecast() : Forecast</text>
+      </g>
+
+      <!-- 3. Employee Class (Central Identity) -->
+      <g id="cls-employee" filter="url(#cls-shadow)">
+        <rect x="610" y="80" width="260" height="215" rx="6" fill="#ffffff" stroke="#2563eb" stroke-width="2.2"/>
+        <rect x="610" y="80" width="260" height="30" rx="6" fill="#1e40af"/>
+        <text x="740" y="100" text-anchor="middle" font-size="13" font-weight="800" fill="#ffffff">Employee</text>
+        <text x="622" y="126" font-size="10" fill="#0f172a">+ id : Integer [PK]</text>
+        <text x="622" y="142" font-size="10" fill="#0f172a">+ name : String</text>
+        <text x="622" y="158" font-size="10" fill="#0f172a">+ email : String (unique)</text>
+        <text x="622" y="174" font-size="10" fill="#0f172a">- password : String (bcrypt)</text>
+        <text x="622" y="190" font-size="10" fill="#0f172a">+ role : RoleEnum [HR|MGR|WKR]</text>
+        <text x="622" y="206" font-size="10" fill="#0f172a">+ department_id : Integer [FK]</text>
+        <text x="622" y="222" font-size="10" fill="#0f172a">+ status : StatusEnum [Active|Inactive]</text>
+        <line x1="610" y1="232" x2="870" y2="232" stroke="#e2e8f0" stroke-width="1"/>
+        <text x="622" y="250" font-size="9.5" fill="#1e40af">+ verifyPassword(plain : String) : bool</text>
+        <text x="622" y="266" font-size="9.5" fill="#1e40af">+ getBiometricLogs() : List&lt;Log&gt;</text>
+        <text x="622" y="282" font-size="9.5" fill="#1e40af">+ getPayrollLedgers() : List&lt;Ledger&gt;</text>
+      </g>
+
+      <!-- 4. FaceEmbedding Class (pgvector) -->
+      <g id="cls-embedding" filter="url(#cls-shadow)">
+        <rect x="930" y="80" width="220" height="150" rx="6" fill="#ffffff" stroke="#059669" stroke-width="1.8"/>
+        <rect x="930" y="80" width="220" height="28" rx="6" fill="#065f46"/>
+        <text x="1040" y="99" text-anchor="middle" font-size="12" font-weight="800" fill="#ffffff">FaceEmbedding (pgvector)</text>
+        <text x="940" y="124" font-size="10" fill="#0f172a">+ id : Integer [PK]</text>
+        <text x="940" y="140" font-size="10" fill="#0f172a">+ employee_id : Integer [FK]</text>
+        <text x="940" y="156" font-size="10" fill="#059669" font-weight="700">+ embedding : vector(128)</text>
+        <text x="940" y="172" font-size="10" fill="#0f172a">+ is_active : Boolean</text>
+        <line x1="930" y1="182" x2="1150" y2="182" stroke="#e2e8f0" stroke-width="1"/>
+        <text x="940" y="200" font-size="9.5" fill="#065f46">+ euclideanDist(q) : float</text>
+        <text x="940" y="216" font-size="9.5" fill="#065f46">+ cosineSimilarity(q) : float</text>
+      </g>
+
+      <!-- 5. OfflinePunch Class (IndexedDB) -->
+      <g id="cls-offline" filter="url(#cls-shadow)">
+        <rect x="1180" y="80" width="190" height="150" rx="6" fill="#ffffff" stroke="#ca8a04" stroke-width="1.8"/>
+        <rect x="1180" y="80" width="190" height="28" rx="6" fill="#854d0e"/>
+        <text x="1275" y="99" text-anchor="middle" font-size="12" font-weight="800" fill="#ffffff">&lt;&lt;Client Store&gt;&gt;</text>
+        <text x="1190" y="124" font-size="10" fill="#0f172a">+ id : AutoIncrement</text>
+        <text x="1190" y="140" font-size="10" fill="#0f172a">+ employee_id : int</text>
+        <text x="1190" y="156" font-size="10" fill="#0f172a">+ log_type : String</text>
+        <text x="1190" y="172" font-size="10" fill="#854d0e" font-weight="700">+ synced : int (0|1)</text>
+        <line x1="1180" y1="182" x2="1370" y2="182" stroke="#e2e8f0" stroke-width="1"/>
+        <text x="1190" y="200" font-size="9.5" fill="#854d0e">+ saveToIndexedDB()</text>
+        <text x="1190" y="216" font-size="9.5" fill="#854d0e">+ syncBatchToServer()</text>
+      </g>
+
+      <!-- ================= ROW 2: TIER 2 - OPERATIONS & ATTENDANCE ================= -->
+      <!-- 6. BiometricLog Class -->
+      <g id="cls-biometric" filter="url(#cls-shadow)">
+        <rect x="930" y="280" width="220" height="175" rx="6" fill="#ffffff" stroke="#059669" stroke-width="1.8"/>
+        <rect x="930" y="280" width="220" height="28" rx="6" fill="#065f46"/>
+        <text x="1040" y="299" text-anchor="middle" font-size="12" font-weight="800" fill="#ffffff">BiometricLog</text>
+        <text x="940" y="324" font-size="10" fill="#0f172a">+ id : Integer [PK]</text>
+        <text x="940" y="340" font-size="10" fill="#0f172a">+ employee_id : Integer [FK]</text>
+        <text x="940" y="356" font-size="10" fill="#0f172a">+ timestamp : Timestamp</text>
+        <text x="940" y="372" font-size="10" fill="#0f172a">+ log_type : [Check_In|Out]</text>
+        <text x="940" y="388" font-size="10" fill="#0f172a">+ device_id : String</text>
+        <text x="940" y="404" font-size="10" fill="#0f172a">+ verified_by_face : Boolean</text>
+        <line x1="930" y1="414" x2="1150" y2="414" stroke="#e2e8f0" stroke-width="1"/>
+        <text x="940" y="432" font-size="9.5" fill="#065f46">+ validateHaversine() : bool</text>
+        <text x="940" y="446" font-size="9.5" fill="#065f46">+ getPairedShift() : Shift</text>
+      </g>
+
+      <!-- 7. Shift Class -->
+      <g id="cls-shift" filter="url(#cls-shadow)">
+        <rect x="610" y="340" width="260" height="175" rx="6" fill="#ffffff" stroke="#2563eb" stroke-width="1.8"/>
+        <rect x="610" y="340" width="260" height="28" rx="6" fill="#1e3a8a"/>
+        <text x="740" y="359" text-anchor="middle" font-size="12" font-weight="800" fill="#ffffff">Shift</text>
+        <text x="622" y="384" font-size="10" fill="#0f172a">+ id : Integer [PK]</text>
+        <text x="622" y="400" font-size="10" fill="#0f172a">+ employee_id : Integer [FK]</text>
+        <text x="622" y="416" font-size="10" fill="#0f172a">+ date : Date</text>
+        <text x="622" y="432" font-size="10" fill="#0f172a">+ start_time : Time</text>
+        <text x="622" y="448" font-size="10" fill="#0f172a">+ end_time : Time</text>
+        <text x="622" y="464" font-size="10" fill="#0f172a">+ status : [Scheduled|Completed|Absent]</text>
+        <line x1="610" y1="474" x2="870" y2="474" stroke="#e2e8f0" stroke-width="1"/>
+        <text x="622" y="492" font-size="9.5" fill="#1e3a8a">+ assignEmployee(empId)</text>
+        <text x="622" y="506" font-size="9.5" fill="#1e3a8a">+ calculateDuration() : float</text>
+      </g>
+
+      <!-- 8. ShiftSwap Class -->
+      <g id="cls-shiftswap" filter="url(#cls-shadow)">
+        <rect x="320" y="340" width="230" height="175" rx="6" fill="#ffffff" stroke="#a855f7" stroke-width="1.8"/>
+        <rect x="320" y="340" width="230" height="28" rx="6" fill="#581c87"/>
+        <text x="435" y="359" text-anchor="middle" font-size="12" font-weight="800" fill="#ffffff">ShiftSwap</text>
+        <text x="330" y="384" font-size="10" fill="#0f172a">+ id : Integer [PK]</text>
+        <text x="330" y="400" font-size="10" fill="#0f172a">+ employee_id : Integer [FK]</text>
+        <text x="330" y="416" font-size="10" fill="#0f172a">+ employee_name : String</text>
+        <text x="330" y="432" font-size="10" fill="#0f172a">+ date : String</text>
+        <text x="330" y="448" font-size="10" fill="#0f172a">+ shift : String</text>
+        <text x="330" y="464" font-size="10" fill="#581c87" font-weight="700">+ status : [Pending|Authorized|Rejected]</text>
+        <line x1="320" y1="474" x2="550" y2="474" stroke="#e2e8f0" stroke-width="1"/>
+        <text x="330" y="492" font-size="9.5" fill="#581c87">+ authorize(managerId)</text>
+        <text x="330" y="506" font-size="9.5" fill="#581c87">+ reject(reason)</text>
+      </g>
+
+      <!-- 9. LeaveRequest Class -->
+      <g id="cls-leave" filter="url(#cls-shadow)">
+        <rect x="40" y="340" width="220" height="175" rx="6" fill="#ffffff" stroke="#0284c7" stroke-width="1.8"/>
+        <rect x="40" y="340" width="220" height="28" rx="6" fill="#0369a1"/>
+        <text x="150" y="359" text-anchor="middle" font-size="12" font-weight="800" fill="#ffffff">LeaveRequest</text>
+        <text x="50" y="384" font-size="10" fill="#0f172a">+ id : Integer [PK]</text>
+        <text x="50" y="400" font-size="10" fill="#0f172a">+ employee_id : Integer [FK]</text>
+        <text x="50" y="416" font-size="10" fill="#0f172a">+ leave_type : String</text>
+        <text x="50" y="432" font-size="10" fill="#0f172a">+ start_date : Date</text>
+        <text x="50" y="448" font-size="10" fill="#0f172a">+ end_date : Date</text>
+        <text x="50" y="464" font-size="10" fill="#0369a1" font-weight="700">+ status : [Pending|Approved|Rejected]</text>
+        <line x1="40" y1="474" x2="260" y2="474" stroke="#e2e8f0" stroke-width="1"/>
+        <text x="50" y="492" font-size="9.5" fill="#0369a1">+ approve()</text>
+        <text x="50" y="506" font-size="9.5" fill="#0369a1">+ reject()</text>
+      </g>
+
+      <!-- ================= ROW 3: TIER 3 - PAYROLL, FRAUD & INTELLIGENCE ================= -->
+      <!-- 10. PayrollLedger Class -->
+      <g id="cls-payroll" filter="url(#cls-shadow)">
+        <rect x="610" y="560" width="260" height="215" rx="6" fill="#ffffff" stroke="#7c3aed" stroke-width="2"/>
+        <rect x="610" y="560" width="260" height="30" rx="6" fill="#6d28d9"/>
+        <text x="740" y="580" text-anchor="middle" font-size="13" font-weight="800" fill="#ffffff">PayrollLedger</text>
+        <text x="622" y="606" font-size="10" fill="#0f172a">+ id : Integer [PK]</text>
+        <text x="622" y="622" font-size="10" fill="#0f172a">+ employee_id : Integer [FK]</text>
+        <text x="622" y="638" font-size="10" fill="#0f172a">+ period_start : Date; period_end: Date</text>
+        <text x="622" y="654" font-size="10" fill="#0f172a">+ regular_hours : Double; overtime: Double</text>
+        <text x="622" y="670" font-size="10" fill="#0f172a">+ gross_pay : Double; deductions: Double</text>
+        <text x="622" y="686" font-size="10" fill="#7c3aed" font-weight="700">+ net_pay : Double</text>
+        <text x="622" y="702" font-size="10" fill="#0f172a">+ status : [Draft|Approved|Paid]</text>
+        <line x1="610" y1="712" x2="870" y2="712" stroke="#e2e8f0" stroke-width="1"/>
+        <text x="622" y="730" font-size="9.5" fill="#6d28d9">+ computeDeterministicPay(hours, rate)</text>
+        <text x="622" y="746" font-size="9.5" fill="#6d28d9">+ apply10PercentTax()</text>
+        <text x="622" y="762" font-size="9.5" fill="#6d28d9">+ generatePDFPayslip()</text>
+      </g>
+
+      <!-- 11. FraudFlag Class -->
+      <g id="cls-fraud" filter="url(#cls-shadow)">
+        <rect x="930" y="560" width="220" height="195" rx="6" fill="#ffffff" stroke="#e11d48" stroke-width="1.8"/>
+        <rect x="930" y="560" width="220" height="28" rx="6" fill="#9f1239"/>
+        <text x="1040" y="579" text-anchor="middle" font-size="12" font-weight="800" fill="#ffffff">FraudFlag</text>
+        <text x="940" y="604" font-size="10" fill="#0f172a">+ id : Integer [PK]</text>
+        <text x="940" y="620" font-size="10" fill="#0f172a">+ employee_id : Integer [FK]</text>
+        <text x="940" y="636" font-size="10" fill="#e11d48" font-weight="700">+ flag_type : [geofence|z_score|ghost]</text>
+        <text x="940" y="652" font-size="10" fill="#0f172a">+ raised_at : Timestamp</text>
+        <text x="940" y="668" font-size="10" fill="#0f172a">+ status : [Pending|Dismissed|Confirmed]</text>
+        <text x="940" y="684" font-size="10" fill="#0f172a">+ resolved_by : Integer [FK]</text>
+        <line x1="930" y1="694" x2="1150" y2="694" stroke="#e2e8f0" stroke-width="1"/>
+        <text x="940" y="712" font-size="9.5" fill="#9f1239">+ flagGeofenceBreach(dist)</text>
+        <text x="940" y="728" font-size="9.5" fill="#9f1239">+ flagZScoreAnomaly(z)</text>
+        <text x="940" y="744" font-size="9.5" fill="#9f1239">+ markResolved(adminId)</text>
+      </g>
+
+      <!-- 12. StaffingForecast Class -->
+      <g id="cls-forecast" filter="url(#cls-shadow)">
+        <rect x="320" y="560" width="230" height="175" rx="6" fill="#ffffff" stroke="#d97706" stroke-width="1.8"/>
+        <rect x="320" y="560" width="230" height="28" rx="6" fill="#92400e"/>
+        <text x="435" y="579" text-anchor="middle" font-size="12" font-weight="800" fill="#ffffff">StaffingForecast</text>
+        <text x="330" y="604" font-size="10" fill="#0f172a">+ id : Integer [PK]</text>
+        <text x="330" y="620" font-size="10" fill="#0f172a">+ department_id : Integer [FK]</text>
+        <text x="330" y="636" font-size="10" fill="#0f172a">+ shift_date : Date</text>
+        <text x="330" y="652" font-size="10" fill="#0f172a">+ predicted_headcount : Integer</text>
+        <text x="330" y="668" font-size="10" fill="#0f172a">+ confidence_band : String</text>
+        <line x1="320" y1="678" x2="550" y2="678" stroke="#e2e8f0" stroke-width="1"/>
+        <text x="330" y="696" font-size="9.5" fill="#92400e">+ compute7DayMovingAvg()</text>
+        <text x="330" y="712" font-size="9.5" fill="#92400e">+ generateAIBriefing()</text>
+      </g>
+
+      <!-- 13. ChatbotKnowledgeBase Class -->
+      <g id="cls-rag" filter="url(#cls-shadow)">
+        <rect x="1180" y="280" width="190" height="175" rx="6" fill="#ffffff" stroke="#0284c7" stroke-width="1.8"/>
+        <rect x="1180" y="280" width="190" height="28" rx="6" fill="#075985"/>
+        <text x="1275" y="299" text-anchor="middle" font-size="12" font-weight="800" fill="#ffffff">KnowledgeChunk (RAG)</text>
+        <text x="1190" y="324" font-size="10" fill="#0f172a">+ id : Integer [PK]</text>
+        <text x="1190" y="340" font-size="10" fill="#0f172a">+ chunk_text : Text</text>
+        <text x="1190" y="356" font-size="10" fill="#0f172a">+ source_doc : String</text>
+        <text x="1190" y="372" font-size="10" fill="#0f172a">+ company_id : Integer</text>
+        <line x1="1180" y1="382" x2="1370" y2="382" stroke="#e2e8f0" stroke-width="1"/>
+        <text x="1190" y="400" font-size="9.5" fill="#075985">+ searchKeywords()</text>
+        <text x="1190" y="416" font-size="9.5" fill="#075985">+ rankByRelevance()</text>
+      </g>
+
+      <!-- 14. PerformanceScore Class (Bottom-Left) -->
+      <g id="cls-perf" filter="url(#cls-shadow)">
+        <rect x="40" y="560" width="220" height="175" rx="6" fill="#ffffff" stroke="#475569" stroke-width="1.8"/>
+        <rect x="40" y="560" width="220" height="28" rx="6" fill="#334155"/>
+        <text x="150" y="579" text-anchor="middle" font-size="12" font-weight="800" fill="#ffffff">PerformanceScore</text>
+        <text x="50" y="604" font-size="10" fill="#0f172a">+ id : Integer [PK]</text>
+        <text x="50" y="620" font-size="10" fill="#0f172a">+ employee_id : Integer [FK]</text>
+        <text x="50" y="636" font-size="10" fill="#0f172a">+ punctuality_score : Double</text>
+        <text x="50" y="652" font-size="10" fill="#0f172a">+ composite_score : Double</text>
+        <line x1="40" y1="662" x2="260" y2="662" stroke="#e2e8f0" stroke-width="1"/>
+        <text x="50" y="680" font-size="9.5" fill="#334155">+ calculateComposite()</text>
+        <text x="50" y="696" font-size="9.5" fill="#334155">+ generateAISummary()</text>
+      </g>
+
+      <!-- ================= RELATIONSHIP ARROWS & MULTIPLICITIES ================= -->
+      <!-- Company to Department (1 to 1..*) -->
+      <line x1="260" y1="140" x2="320" y2="140" stroke="#0f172a" stroke-width="1.8" marker-start="url(#comp-diamond)" marker-end="url(#cls-arr)"/>
+      <text x="270" y="132" font-size="9" font-weight="700" fill="#0f172a">1</text>
+      <text x="305" y="132" font-size="9" font-weight="700" fill="#0f172a">1..*</text>
+
+      <!-- Department to Employee (1 to 0..*) -->
+      <line x1="550" y1="140" x2="610" y2="140" stroke="#0f172a" stroke-width="1.8" marker-start="url(#comp-diamond)" marker-end="url(#cls-arr)"/>
+      <text x="560" y="132" font-size="9" font-weight="700" fill="#0f172a">1</text>
+      <text x="595" y="132" font-size="9" font-weight="700" fill="#0f172a">0..*</text>
+
+      <!-- Employee to FaceEmbedding (1 to 0..1) -->
+      <line x1="870" y1="140" x2="930" y2="140" stroke="#059669" stroke-width="1.8" marker-end="url(#cls-arr)"/>
+      <text x="880" y="132" font-size="9" font-weight="700" fill="#059669">1</text>
+      <text x="915" y="132" font-size="9" font-weight="700" fill="#059669">0..1</text>
+
+      <!-- Employee to BiometricLog (1 to 0..*) -->
+      <path d="M 870 200 L 910 200 L 910 320 L 930 320" fill="none" stroke="#059669" stroke-width="1.8" marker-end="url(#cls-arr)"/>
+      <text x="880" y="194" font-size="9" font-weight="700" fill="#059669">1</text>
+      <text x="915" y="314" font-size="9" font-weight="700" fill="#059669">0..*</text>
+
+      <!-- Employee to Shift (1 to 0..*) -->
+      <line x1="740" y1="295" x2="740" y2="340" stroke="#2563eb" stroke-width="1.8" marker-end="url(#cls-arr)"/>
+      <text x="746" y="308" font-size="9" font-weight="700" fill="#2563eb">1</text>
+      <text x="746" y="332" font-size="9" font-weight="700" fill="#2563eb">0..*</text>
+
+      <!-- Employee to PayrollLedger (1 to 0..*) -->
+      <line x1="740" y1="515" x2="740" y2="560" stroke="#7c3aed" stroke-width="1.8" marker-end="url(#cls-arr)"/>
+      <text x="746" y="530" font-size="9" font-weight="700" fill="#7c3aed">1</text>
+      <text x="746" y="552" font-size="9" font-weight="700" fill="#7c3aed">0..*</text>
+
+      <!-- Employee to ShiftSwap (1 to 0..*) -->
+      <path d="M 610 240 L 580 240 L 580 390 L 550 390" fill="none" stroke="#a855f7" stroke-width="1.8" marker-end="url(#cls-arr)"/>
+      <text x="590" y="234" font-size="9" font-weight="700" fill="#a855f7">1</text>
+      <text x="555" y="384" font-size="9" font-weight="700" fill="#a855f7">0..*</text>
+
+      <!-- Employee to LeaveRequest (1 to 0..*) -->
+      <path d="M 610 260 L 290 260 L 290 390 L 260 390" fill="none" stroke="#0284c7" stroke-width="1.8" marker-end="url(#cls-arr)"/>
+      <text x="590" y="254" font-size="9" font-weight="700" fill="#0284c7">1</text>
+      <text x="265" y="384" font-size="9" font-weight="700" fill="#0284c7">0..*</text>
+
+      <!-- Employee to FraudFlag (1 to 0..*) -->
+      <path d="M 870 230 L 900 230 L 900 580 L 930 580" fill="none" stroke="#e11d48" stroke-width="1.8" marker-end="url(#cls-arr)"/>
+      <text x="880" y="224" font-size="9" font-weight="700" fill="#e11d48">1</text>
+      <text x="915" y="574" font-size="9" font-weight="700" fill="#e11d48">0..*</text>
+
+      <!-- Department to StaffingForecast (1 to 0..*) -->
+      <path d="M 435" y1="230" x2="435" y2="560" stroke="#d97706" stroke-width="1.8" marker-end="url(#cls-arr)"/>
+      <text x="442" y="245" font-size="9" font-weight="700" fill="#d97706">1</text>
+      <text x="442" y="550" font-size="9" font-weight="700" fill="#d97706">0..*</text>
+
+      <!-- SYSTEM ARCHITECTURE SUMMARY FOOTER -->
+      <rect x="40" y="800" width="1320" height="100" rx="8" fill="#f8fafc" stroke="#e2e8f0" stroke-width="1.5"/>
+      <text x="60" y="825" font-size="12" font-weight="800" fill="#0f172a">CLASS DESIGN PRINCIPLES &amp; EXTENSIBILITY</text>
+      <text x="60" y="845" font-size="10" fill="#334155">• Multi-Tenant Scoping: All organizational entities (Company, Department, Employee, KnowledgeBase) enforce strict company_id database partitioning.</text>
+      <text x="60" y="865" font-size="10" fill="#334155">• Biometric Vector Storage: 128-dimensional facial embedding vector indices leverage pgvector indexing with Euclidean (&lt;-&gt;) search operators.</text>
+      <text x="60" y="885" font-size="10" fill="#334155">• Offline Resiliency: OfflinePunch mirrors client IndexedDB schema with monotonic synchronization state tracking (synced: 0 | 1) for seamless recovery.</text>
+    </svg>

@@ -18,6 +18,7 @@ import {
   Users, CheckCircle2, ChevronRight, BarChart3, Menu, X
 } from 'lucide-react';
 import LeaveManager from '@/components/leave-manager';
+import ArchitectureViewer from '@/components/architecture-viewer';
 import { Button } from '@/components/ui/button';
 
 export default function Home() {
@@ -60,6 +61,9 @@ export default function Home() {
               <a href="#features" className="hover:text-foreground transition-colors">Features</a>
               <a href="#solutions" className="hover:text-foreground transition-colors">Solutions</a>
               <a href="#pricing" className="hover:text-foreground transition-colors">Pricing</a>
+              <a href="/api/docs/pdf" target="_blank" rel="noopener noreferrer" className="hover:text-primary transition-colors text-primary font-semibold flex items-center gap-1">
+                UML &amp; Arch Spec (PDF)
+              </a>
             </nav>
 
             {/* Desktop Auth Buttons */}
@@ -109,6 +113,15 @@ export default function Home() {
                 className="text-sm font-semibold text-muted-foreground hover:text-foreground py-2"
               >
                 Pricing
+              </a>
+              <a 
+                href="/api/docs/pdf" 
+                target="_blank"
+                rel="noopener noreferrer"
+                onClick={() => setMobileMenuOpen(false)}
+                className="text-sm font-semibold text-primary hover:text-primary/80 py-2 flex items-center gap-1.5"
+              >
+                UML &amp; Arch Spec (PDF)
               </a>
               <hr className="border-border my-2" />
               <Link href="/login" onClick={() => setMobileMenuOpen(false)}>
@@ -399,6 +412,8 @@ export default function Home() {
         return <PayrollCenter role={role} userId={userId} userName={userName} />;
       case 'fraud':
         return <FraudQueue />;
+      case 'architecture':
+        return <ArchitectureViewer role={role} />;
       default:
         return <DashboardOverview role={role} />;
     }

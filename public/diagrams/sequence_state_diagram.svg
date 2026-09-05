@@ -1,0 +1,203 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1400 950" width="100%" height="100%" style="background:#ffffff; font-family: 'Segoe UI', -apple-system, BlinkMacSystemFont, Roboto, sans-serif;">
+      <defs>
+        <marker id="seq-arr" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
+          <path d="M 0 1 L 10 5 L 0 9 z" fill="#1e293b" />
+        </marker>
+        <marker id="seq-arr-dash" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
+          <path d="M 0 1 L 10 5 L 0 9 z" fill="#64748b" />
+        </marker>
+        <filter id="seq-shadow" x="-5%" y="-5%" width="115%" height="115%">
+          <feDropShadow dx="2" dy="2" stdDeviation="3" flood-opacity="0.08" />
+        </filter>
+      </defs>
+
+      <!-- Background Grid -->
+      <pattern id="seq-grid" width="40" height="40" patternUnits="userSpaceOnUse">
+        <path d="M 40 0 L 0 0 0 40" fill="none" stroke="#f1f5f9" stroke-width="1"/>
+      </pattern>
+      <rect width="1400" height="950" fill="url(#seq-grid)" />
+
+      <!-- TITLE -->
+      <text x="700" y="32" text-anchor="middle" font-size="21" font-weight="800" fill="#0f172a" letter-spacing="0.5">
+        UML SEQUENCE &amp; STATE SPECIFICATION: PROTOCOLS &amp; LIFECYCLES
+      </text>
+      <text x="700" y="50" text-anchor="middle" font-size="11.5" fill="#64748b" font-weight="500">
+        Top: Multi-Tier Handshake for Biometric Authentication | Bottom: Finite State Transition Lifecycles (Shift, Swap, Payroll)
+      </text>
+
+      <!-- ================= SECTION A: SEQUENCE DIAGRAM (Y: 65 - 500) ================= -->
+      <rect x="40" y="65" width="1320" height="425" rx="10" fill="#ffffff" stroke="#cbd5e1" stroke-width="1.5" filter="url(#seq-shadow)"/>
+      <text x="60" y="90" font-size="12" font-weight="800" fill="#0f172a">PART A: UML SEQUENCE DIAGRAM — EDGE BIOMETRICS &amp; GEOFENCE HANDSHAKE</text>
+
+      <!-- Lifeline Headers -->
+      <!-- 1. Worker -->
+      <rect x="100" y="105" width="140" height="35" rx="6" fill="#1e293b"/>
+      <text x="170" y="127" text-anchor="middle" font-size="11" font-weight="700" fill="#38bdf8">Worker (Client)</text>
+      <line x1="170" y1="140" x2="170" y2="470" stroke="#94a3b8" stroke-width="1.5" stroke-dasharray="4 3"/>
+
+      <!-- 2. Kiosk Tablet -->
+      <rect x="360" y="105" width="150" height="35" rx="6" fill="#1e293b"/>
+      <text x="435" y="127" text-anchor="middle" font-size="11" font-weight="700" fill="#38bdf8">Kiosk Edge Device</text>
+      <line x1="435" y1="140" x2="435" y2="470" stroke="#94a3b8" stroke-width="1.5" stroke-dasharray="4 3"/>
+
+      <!-- 3. Attendance API -->
+      <rect x="630" y="105" width="160" height="35" rx="6" fill="#1e293b"/>
+      <text x="710" y="127" text-anchor="middle" font-size="11" font-weight="700" fill="#38bdf8">/api/attendance</text>
+      <line x1="710" y1="140" x2="710" y2="470" stroke="#94a3b8" stroke-width="1.5" stroke-dasharray="4 3"/>
+
+      <!-- 4. pgvector DB -->
+      <rect x="910" y="105" width="160" height="35" rx="6" fill="#1e293b"/>
+      <text x="990" y="127" text-anchor="middle" font-size="11" font-weight="700" fill="#34d399">pgvector PostgreSQL</text>
+      <line x1="990" y1="140" x2="990" y2="470" stroke="#94a3b8" stroke-width="1.5" stroke-dasharray="4 3"/>
+
+      <!-- 5. Fraud Queue -->
+      <rect x="1170" y="105" width="150" height="35" rx="6" fill="#1e293b"/>
+      <text x="1245" y="127" text-anchor="middle" font-size="11" font-weight="700" fill="#f87171">Fraud Flag Queue</text>
+      <line x1="1245" y1="140" x2="1245" y2="470" stroke="#94a3b8" stroke-width="1.5" stroke-dasharray="4 3"/>
+
+      <!-- Messages -->
+      <!-- Msg 1: Worker clicks punch -->
+      <line x1="170" y1="165" x2="435" y2="165" stroke="#1e293b" stroke-width="1.8" marker-end="url(#seq-arr)"/>
+      <text x="290" y="158" text-anchor="middle" font-size="9.5" font-weight="600" fill="#1e293b">1: Clicks 'Verify &amp; Register Attendance'</text>
+
+      <!-- Activation on Kiosk -->
+      <rect x="430" y="165" width="10" height="85" fill="#cbd5e1"/>
+      <text x="445" y="190" font-size="8.5" fill="#475569">Extracts 128d face vector &amp; navigator.geolocation</text>
+
+      <!-- Msg 2: Kiosk POST to API -->
+      <line x1="440" y1="220" x2="710" y2="220" stroke="#1e293b" stroke-width="1.8" marker-end="url(#seq-arr)"/>
+      <text x="575" y="213" text-anchor="middle" font-size="9.5" font-weight="600" fill="#1e293b">2: POST /api/attendance { face_vector, gps, emp_id }</text>
+
+      <!-- Activation on API -->
+      <rect x="705" y="220" width="10" height="180" fill="#cbd5e1"/>
+
+      <!-- Msg 3: API queries pgvector -->
+      <line x1="715" y1="245" x2="990" y2="245" stroke="#1e293b" stroke-width="1.8" marker-end="url(#seq-arr)"/>
+      <text x="850" y="238" text-anchor="middle" font-size="9" font-weight="600" fill="#1e293b">3: SELECT embedding &lt;-&gt; $1 AS distance</text>
+
+      <!-- Return from DB -->
+      <line x1="990" y1="280" x2="715" y2="280" stroke="#64748b" stroke-width="1.5" stroke-dasharray="4 3" marker-end="url(#seq-arr-dash)"/>
+      <text x="850" y="273" text-anchor="middle" font-size="9" fill="#475569">4: Return match record (distance = 0.28)</text>
+
+      <!-- API Internal Math -->
+      <text x="725" y="305" font-size="8.5" font-weight="600" fill="#2563eb">Haversine distance check: R * c = 42m (&lt;= 100m)</text>
+
+      <!-- ALT BLOCK: Geofence Check -->
+      <rect x="680" y="325" width="600" height="95" fill="#f8fafc" stroke="#94a3b8" stroke-dasharray="3 3"/>
+      <text x="690" y="340" font-size="8.5" font-weight="800" fill="#64748b">[alt: distance &gt; 100m]</text>
+
+      <line x1="715" y1="355" x2="1245" y2="355" stroke="#e11d48" stroke-width="1.8" marker-end="url(#seq-arr)"/>
+      <text x="980" y="350" text-anchor="middle" font-size="8.5" font-weight="700" fill="#e11d48">5a: INSERT INTO fraud_flags (flag_type: 'geofence')</text>
+
+      <text x="690" y="380" font-size="8.5" font-weight="800" fill="#64748b">[else: valid perimeter]</text>
+      <line x1="715" y1="395" x2="990" y2="395" stroke="#16a34a" stroke-width="1.8" marker-end="url(#seq-arr)"/>
+      <text x="850" y="390" text-anchor="middle" font-size="8.5" font-weight="700" fill="#16a34a">5b: INSERT INTO biometric_logs (verified: true)</text>
+
+      <!-- Response to Kiosk -->
+      <line x1="705" y1="425" x2="440" y2="425" stroke="#16a34a" stroke-width="1.8" stroke-dasharray="4 3" marker-end="url(#seq-arr-dash)"/>
+      <text x="575" y="418" text-anchor="middle" font-size="9.5" font-weight="700" fill="#16a34a">6: 200 OK { success: true, verified_by_face: true }</text>
+
+      <!-- Response to Worker -->
+      <line x1="435" y1="450" x2="170" y2="450" stroke="#16a34a" stroke-width="1.8" stroke-dasharray="4 3" marker-end="url(#seq-arr-dash)"/>
+      <text x="290" y="443" text-anchor="middle" font-size="9.5" font-weight="700" fill="#16a34a">7: Visual confirmation card &amp; audio notification</text>
+
+      <!-- ================= SECTION B: STATE MACHINE LIFECYCLES (Y: 510 - 920) ================= -->
+      <!-- Machine 1: Shift State Lifecycle -->
+      <rect x="40" y="510" width="420" height="400" rx="10" fill="#ffffff" stroke="#cbd5e1" stroke-width="1.5" filter="url(#seq-shadow)"/>
+      <text x="60" y="535" font-size="11.5" font-weight="800" fill="#1e3a8a">STATE MACHINE 1: SHIFT LIFECYCLE</text>
+
+      <!-- Start -->
+      <circle cx="100" cy="580" r="10" fill="#0f172a"/>
+      <line x1="110" y1="580" x2="160" y2="580" stroke="#0f172a" stroke-width="1.8" marker-end="url(#seq-arr)"/>
+
+      <rect x="160" y="560" width="110" height="40" rx="8" fill="#eff6ff" stroke="#3b82f6" stroke-width="1.8"/>
+      <text x="215" y="585" text-anchor="middle" font-size="11" font-weight="700" fill="#1e40af">Scheduled</text>
+
+      <!-- Scheduled to Standby -->
+      <path d="M 215 600 L 215 650" stroke="#0f172a" stroke-width="1.8" marker-end="url(#seq-arr)"/>
+      <text x="220" y="630" font-size="8" fill="#475569">[reassigned as backup]</text>
+
+      <rect x="160" y="650" width="110" height="40" rx="8" fill="#fefce8" stroke="#ca8a04" stroke-width="1.8"/>
+      <text x="215" y="675" text-anchor="middle" font-size="11" font-weight="700" fill="#854d0e">Standby</text>
+
+      <!-- Scheduled to Completed -->
+      <path d="M 270 580 L 330 580" stroke="#16a34a" stroke-width="1.8" marker-end="url(#seq-arr)"/>
+      <text x="300" y="572" font-size="8" font-weight="600" fill="#16a34a">[Checked Out]</text>
+
+      <rect x="330" y="560" width="110" height="40" rx="8" fill="#f0fdf4" stroke="#16a34a" stroke-width="1.8"/>
+      <text x="385" y="585" text-anchor="middle" font-size="11" font-weight="700" fill="#14532d">Completed</text>
+
+      <!-- Scheduled to Absent -->
+      <path d="M 215 690 L 215 740" stroke="#dc2626" stroke-width="1.8" marker-end="url(#seq-arr)"/>
+      <text x="220" y="720" font-size="8" fill="#dc2626">[shift passed &amp; no log]</text>
+
+      <rect x="160" y="740" width="110" height="40" rx="8" fill="#fef2f2" stroke="#ef4444" stroke-width="1.8"/>
+      <text x="215" y="765" text-anchor="middle" font-size="11" font-weight="700" fill="#991b1b">Absent</text>
+
+      <!-- Completed to End -->
+      <line x1="385" y1="600" x2="385" y2="820" stroke="#0f172a" stroke-width="1.8" marker-end="url(#seq-arr)"/>
+      <circle cx="385" cy="835" r="12" fill="#ffffff" stroke="#0f172a" stroke-width="1.8"/>
+      <circle cx="385" cy="835" r="7" fill="#0f172a"/>
+
+      <!-- Machine 2: Shift Swap Lifecycle -->
+      <rect x="490" y="510" width="420" height="400" rx="10" fill="#ffffff" stroke="#cbd5e1" stroke-width="1.5" filter="url(#seq-shadow)"/>
+      <text x="510" y="535" font-size="11.5" font-weight="800" fill="#581c87">STATE MACHINE 2: SHIFT SWAP LIFECYCLE</text>
+
+      <circle cx="550" cy="580" r="10" fill="#0f172a"/>
+      <line x1="560" y1="580" x2="610" y2="580" stroke="#0f172a" stroke-width="1.8" marker-end="url(#seq-arr)"/>
+
+      <rect x="610" y="560" width="130" height="40" rx="8" fill="#fffbeb" stroke="#d97706" stroke-width="1.8"/>
+      <text x="675" y="585" text-anchor="middle" font-size="11" font-weight="700" fill="#92400e">Pending Review</text>
+
+      <!-- Pending to Authorized -->
+      <path d="M 675 600 L 675 670" stroke="#16a34a" stroke-width="1.8" marker-end="url(#seq-arr)"/>
+      <text x="680" y="635" font-size="8.5" font-weight="700" fill="#16a34a">[Manager Authorizes]</text>
+
+      <rect x="610" y="670" width="130" height="45" rx="8" fill="#f0fdf4" stroke="#16a34a" stroke-width="1.8"/>
+      <text x="675" y="692" text-anchor="middle" font-size="11" font-weight="700" fill="#14532d">Authorized</text>
+      <text x="675" y="705" text-anchor="middle" font-size="8" fill="#15803d">(Atomic Schedule Swap)</text>
+
+      <!-- Pending to Rejected -->
+      <path d="M 740 580 L 800 580 L 800 670" fill="none" stroke="#dc2626" stroke-width="1.8" marker-end="url(#seq-arr)"/>
+      <text x="770" y="572" font-size="8.5" font-weight="700" fill="#dc2626">[Manager Rejects]</text>
+
+      <rect x="745" y="670" width="130" height="45" rx="8" fill="#fef2f2" stroke="#ef4444" stroke-width="1.8"/>
+      <text x="810" y="692" text-anchor="middle" font-size="11" font-weight="700" fill="#991b1b">Rejected</text>
+      <text x="810" y="705" text-anchor="middle" font-size="8" fill="#b91c1c">(Roster Retained)</text>
+
+      <!-- Terminal -->
+      <line x1="675" y1="715" x2="675" y2="820" stroke="#0f172a" stroke-width="1.8" marker-end="url(#seq-arr)"/>
+      <circle cx="675" cy="835" r="12" fill="#ffffff" stroke="#0f172a" stroke-width="1.8"/>
+      <circle cx="675" cy="835" r="7" fill="#0f172a"/>
+
+      <!-- Machine 3: Payroll Ledger Lifecycle -->
+      <rect x="940" y="510" width="420" height="400" rx="10" fill="#ffffff" stroke="#cbd5e1" stroke-width="1.5" filter="url(#seq-shadow)"/>
+      <text x="960" y="535" font-size="11.5" font-weight="800" fill="#065f46">STATE MACHINE 3: PAYROLL LEDGER LIFECYCLE</text>
+
+      <circle cx="1000" cy="580" r="10" fill="#0f172a"/>
+      <line x1="1010" y1="580" x2="1060" y2="580" stroke="#0f172a" stroke-width="1.8" marker-end="url(#seq-arr)"/>
+
+      <rect x="1060" y="560" width="130" height="40" rx="8" fill="#faf5ff" stroke="#7c3aed" stroke-width="1.8"/>
+      <text x="1125" y="585" text-anchor="middle" font-size="11" font-weight="700" fill="#581c87">Draft (Computed)</text>
+
+      <!-- Draft to Approved -->
+      <path d="M 1125 600 L 1125 670" stroke="#16a34a" stroke-width="1.8" marker-end="url(#seq-arr)"/>
+      <text x="1130" y="635" font-size="8.5" font-weight="700" fill="#16a34a">[Admin Audits &amp; Approves]</text>
+
+      <rect x="1060" y="670" width="130" height="45" rx="8" fill="#eff6ff" stroke="#2563eb" stroke-width="1.8"/>
+      <text x="1125" y="692" text-anchor="middle" font-size="11" font-weight="700" fill="#1e3a8a">Approved</text>
+      <text x="1125" y="705" text-anchor="middle" font-size="8" fill="#1e40af">(Ready for Disbursement)</text>
+
+      <!-- Approved to Paid -->
+      <path d="M 1125 715 L 1125 780" stroke="#16a34a" stroke-width="1.8" marker-end="url(#seq-arr)"/>
+      <text x="1130" y="750" font-size="8.5" font-weight="700" fill="#16a34a">[Disbursement Confirmed]</text>
+
+      <rect x="1060" y="780" width="130" height="45" rx="8" fill="#f0fdf4" stroke="#16a34a" stroke-width="1.8"/>
+      <text x="1125" y="802" text-anchor="middle" font-size="11" font-weight="700" fill="#14532d">Paid</text>
+      <text x="1125" y="815" text-anchor="middle" font-size="8" fill="#15803d">(Payslip Released)</text>
+
+      <!-- End -->
+      <line x1="1190" y1="802" x2="1260" y2="802" stroke="#0f172a" stroke-width="1.8" marker-end="url(#seq-arr)"/>
+      <circle cx="1275" cy="802" r="12" fill="#ffffff" stroke="#0f172a" stroke-width="1.8"/>
+      <circle cx="1275" cy="802" r="7" fill="#0f172a"/>
+    </svg>

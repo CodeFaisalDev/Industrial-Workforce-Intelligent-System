@@ -1,0 +1,220 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1400 950" width="100%" height="100%" style="background:#ffffff; font-family: 'Segoe UI', -apple-system, BlinkMacSystemFont, Roboto, sans-serif;">
+      <defs>
+        <marker id="arr-p-green" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
+          <path d="M 0 1 L 10 5 L 0 9 z" fill="#059669" />
+        </marker>
+        <marker id="arr-p-rose" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
+          <path d="M 0 1 L 10 5 L 0 9 z" fill="#e11d48" />
+        </marker>
+        <marker id="arr-p-purple" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
+          <path d="M 0 1 L 10 5 L 0 9 z" fill="#8b5cf6" />
+        </marker>
+        <marker id="arr-p-blue" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
+          <path d="M 0 1 L 10 5 L 0 9 z" fill="#3b82f6" />
+        </marker>
+        <filter id="shadow3" x="-5%" y="-5%" width="115%" height="115%">
+          <feDropShadow dx="2" dy="2" stdDeviation="3" flood-opacity="0.08" />
+        </filter>
+        <linearGradient id="grad-entity3" x1="0%" y1="0%" x2="100%" y2="100%">
+          <stop offset="0%" stop-color="#1e293b" />
+          <stop offset="100%" stop-color="#0f172a" />
+        </linearGradient>
+        <linearGradient id="grad-p3" x1="0%" y1="0%" x2="0%" y2="100%">
+          <stop offset="0%" stop-color="#eff6ff" />
+          <stop offset="100%" stop-color="#dbeafe" />
+        </linearGradient>
+      </defs>
+
+      <!-- Background -->
+      <pattern id="grid3" width="40" height="40" patternUnits="userSpaceOnUse">
+        <path d="M 40 0 L 0 0 0 40" fill="none" stroke="#f1f5f9" stroke-width="1"/>
+      </pattern>
+      <rect width="1400" height="950" fill="url(#grid3)" />
+
+      <!-- TITLE -->
+      <text x="700" y="35" text-anchor="middle" font-size="20" font-weight="800" fill="#1e40af" letter-spacing="0.5">
+        LEVEL 2 DATA FLOW DIAGRAM: SUBSYSTEM 4.0 &amp; 6.0 (PAYROLL CALCULATION &amp; FRAUD FORENSICS)
+      </text>
+      <text x="700" y="55" text-anchor="middle" font-size="12" fill="#64748b" font-weight="500">
+        Detailed Subprocess Decomposition: Log Pairing, 1.5x Overtime Multiplier, Statistical Z-Scores &amp; AI Digest
+      </text>
+
+      <!-- ================= EXTERNAL ENTITIES ================= -->
+      <!-- E3: HR Administrator -->
+      <g filter="url(#shadow3)">
+        <rect x="40" y="100" width="150" height="75" rx="6" fill="url(#grad-entity3)" stroke="#334155" stroke-width="2"/>
+        <text x="115" y="132" text-anchor="middle" fill="#38bdf8" font-size="11" font-weight="700">ENTITY: E3</text>
+        <text x="115" y="154" text-anchor="middle" fill="#ffffff" font-size="13" font-weight="700">HR Administrator</text>
+      </g>
+
+      <!-- E1: Floor Worker (Payslip Inquirer) -->
+      <g filter="url(#shadow3)">
+        <rect x="40" y="520" width="150" height="75" rx="6" fill="url(#grad-entity3)" stroke="#334155" stroke-width="2"/>
+        <text x="115" y="552" text-anchor="middle" fill="#38bdf8" font-size="11" font-weight="700">ENTITY: E1</text>
+        <text x="115" y="574" text-anchor="middle" fill="#ffffff" font-size="13" font-weight="700">Floor Worker</text>
+      </g>
+
+      <!-- E5: AI Providers (Groq / Gemini) -->
+      <g filter="url(#shadow3)">
+        <rect x="1210" y="680" width="150" height="75" rx="6" fill="url(#grad-entity3)" stroke="#334155" stroke-width="2"/>
+        <text x="1285" y="712" text-anchor="middle" fill="#c084fc" font-size="11" font-weight="700">EXTERNAL SERVICE: E5</text>
+        <text x="1285" y="734" text-anchor="middle" fill="#ffffff" font-size="13" font-weight="700">Groq / Gemini AI</text>
+      </g>
+
+      <!-- ================= LEVEL 2 PROCESSES ================= -->
+      <!-- P4.1: Log Pairing & Hours -->
+      <g filter="url(#shadow3)">
+        <rect x="270" y="90" width="260" height="95" rx="8" fill="url(#grad-p3)" stroke="#3b82f6" stroke-width="2"/>
+        <path d="M 270 90 Q 270 90 270 115 L 530 115 Q 530 90 530 90 Z" fill="#3b82f6"/>
+        <text x="400" y="108" text-anchor="middle" fill="#ffffff" font-size="11" font-weight="700">SUBPROCESS 4.1</text>
+        <text x="400" y="138" text-anchor="middle" fill="#1e40af" font-size="12" font-weight="700">Clock Log Pairing &amp; Hours Aggregator</text>
+        <text x="400" y="156" text-anchor="middle" fill="#3b82f6" font-size="10">Pairs Check_In &amp; Check_Out per Worker</text>
+      </g>
+
+      <!-- P4.2: Overtime & Wage Calculator -->
+      <g filter="url(#shadow3)">
+        <rect x="620" y="90" width="260" height="95" rx="8" fill="url(#grad-p3)" stroke="#3b82f6" stroke-width="2"/>
+        <path d="M 620 90 Q 620 90 620 115 L 880 115 Q 880 90 880 90 Z" fill="#3b82f6"/>
+        <text x="750" y="108" text-anchor="middle" fill="#ffffff" font-size="11" font-weight="700">SUBPROCESS 4.2</text>
+        <text x="750" y="138" text-anchor="middle" fill="#1e40af" font-size="12" font-weight="700">Overtime Split &amp; Wage Multiplier</text>
+        <text x="750" y="156" text-anchor="middle" fill="#3b82f6" font-size="10">8h Base + (Hours - 8) * 1.5 * Hourly Rate</text>
+      </g>
+
+      <!-- P4.3: Tax & Deductions Engine -->
+      <g filter="url(#shadow3)">
+        <rect x="970" y="90" width="260" height="95" rx="8" fill="url(#grad-p3)" stroke="#3b82f6" stroke-width="2"/>
+        <path d="M 970 90 Q 970 90 970 115 L 1230 115 Q 1230 90 1230 90 Z" fill="#3b82f6"/>
+        <text x="1100" y="108" text-anchor="middle" fill="#ffffff" font-size="11" font-weight="700">SUBPROCESS 4.3</text>
+        <text x="1100" y="138" text-anchor="middle" fill="#1e40af" font-size="12" font-weight="700">Statutory Tax &amp; Net Ledger Finalizer</text>
+        <text x="1100" y="156" text-anchor="middle" fill="#3b82f6" font-size="10">Applies 10% Deductions &amp; Generates Net Pay</text>
+      </g>
+
+      <!-- P6.1: Z-Score Overtime Anomaly Detector -->
+      <g filter="url(#shadow3)">
+        <rect x="620" y="440" width="260" height="95" rx="8" fill="url(#grad-p3)" stroke="#e11d48" stroke-width="2"/>
+        <path d="M 620 440 Q 620 440 620 465 L 880 465 Q 880 440 880 440 Z" fill="#e11d48"/>
+        <text x="750" y="458" text-anchor="middle" fill="#ffffff" font-size="11" font-weight="700">SUBPROCESS 6.1</text>
+        <text x="750" y="488" text-anchor="middle" fill="#9f1239" font-size="12" font-weight="700">Statistical Z-Score Outlier Scanner</text>
+        <text x="750" y="506" text-anchor="middle" fill="#be123c" font-size="10">Z = (x - mean) / stddev (Flags Z &gt; 1.5 &amp; OT &gt; 2h)</text>
+      </g>
+
+      <!-- P6.2: Buddy Punch & Double-Log Scanner -->
+      <g filter="url(#shadow3)">
+        <rect x="270" y="440" width="260" height="95" rx="8" fill="url(#grad-p3)" stroke="#e11d48" stroke-width="2"/>
+        <path d="M 270 440 Q 270 440 270 465 L 530 465 Q 530 440 530 440 Z" fill="#e11d48"/>
+        <text x="400" y="458" text-anchor="middle" fill="#ffffff" font-size="11" font-weight="700">SUBPROCESS 6.2</text>
+        <text x="400" y="488" text-anchor="middle" fill="#9f1239" font-size="12" font-weight="700">Concurrent Punch / Buddy Scanner</text>
+        <text x="400" y="506" text-anchor="middle" fill="#be123c" font-size="10">Identifies Identical Timestamp Clocks</text>
+      </g>
+
+      <!-- P6.3: AI Forensic Digest & Resolution -->
+      <g filter="url(#shadow3)">
+        <rect x="970" y="440" width="260" height="95" rx="8" fill="url(#grad-p3)" stroke="#8b5cf6" stroke-width="2"/>
+        <path d="M 970 440 Q 970 440 970 465 L 1230 465 Q 1230 440 1230 440 Z" fill="#8b5cf6"/>
+        <text x="1100" y="458" text-anchor="middle" fill="#ffffff" font-size="11" font-weight="700">SUBPROCESS 6.3</text>
+        <text x="1100" y="488" text-anchor="middle" fill="#6d28d9" font-size="12" font-weight="700">AI Forensic Digest &amp; Triage Manager</text>
+        <text x="1100" y="506" text-anchor="middle" fill="#7c3aed" font-size="10">Generates Weekly Anomaly Briefing</text>
+      </g>
+
+      <!-- ================= DATA STORES ================= -->
+      <!-- D1: Employees -->
+      <g>
+        <rect x="270" y="270" width="260" height="42" fill="#f8fafc" stroke="#64748b" stroke-width="1.5"/>
+        <path d="M 270 270 L 270 312 M 320 270 L 320 312" stroke="#3b82f6" stroke-width="2"/>
+        <text x="295" y="296" text-anchor="middle" font-size="11" font-weight="800" fill="#3b82f6">D1</text>
+        <text x="420" y="296" text-anchor="middle" font-size="10.5" font-weight="600" fill="#1e293b">employees (Hourly Rates by Role)</text>
+      </g>
+
+      <!-- D3: Biometric Logs -->
+      <g>
+        <rect x="40" y="270" width="150" height="42" fill="#f8fafc" stroke="#64748b" stroke-width="1.5"/>
+        <path d="M 40 270 L 40 312 M 80 270 L 80 312" stroke="#059669" stroke-width="2"/>
+        <text x="60" y="296" text-anchor="middle" font-size="11" font-weight="800" fill="#059669">D3</text>
+        <text x="135" y="296" text-anchor="middle" font-size="10" font-weight="600" fill="#1e293b">biometric_logs</text>
+      </g>
+
+      <!-- D5: Payroll Ledgers -->
+      <g>
+        <rect x="750" y="270" width="340" height="42" fill="#f8fafc" stroke="#64748b" stroke-width="1.5"/>
+        <path d="M 750 270 L 750 312 M 800 270 L 800 312" stroke="#059669" stroke-width="2"/>
+        <text x="775" y="296" text-anchor="middle" font-size="11" font-weight="800" fill="#059669">D5</text>
+        <text x="940" y="296" text-anchor="middle" font-size="10.5" font-weight="600" fill="#1e293b">payroll_ledgers (Regular, OT, Gross, Net)</text>
+      </g>
+
+      <!-- D7: Fraud Flags -->
+      <g>
+        <rect x="620" y="680" width="260" height="42" fill="#f8fafc" stroke="#64748b" stroke-width="1.5"/>
+        <path d="M 620 680 L 620 722 M 670 680 L 670 722" stroke="#e11d48" stroke-width="2"/>
+        <text x="645" y="706" text-anchor="middle" font-size="11" font-weight="800" fill="#e11d48">D7</text>
+        <text x="770" y="706" text-anchor="middle" font-size="10.5" font-weight="600" fill="#1e293b">fraud_flags (Audit Queue)</text>
+      </g>
+
+      <!-- ================= DATA FLOWS ================= -->
+      <!-- E3 -> P4.1: Compute Request (Start/End Date) -->
+      <path d="M 190 125 L 270 125" stroke="#3b82f6" stroke-width="1.8" fill="none" marker-end="url(#arr-p-blue)" />
+      <text x="230" y="118" text-anchor="middle" font-size="9" font-weight="600" fill="#1e40af">Start &amp; End Period</text>
+
+      <!-- D3 -> P4.1: Fetch Clock Logs for Period -->
+      <path d="M 115 270 L 115 170 L 270 170" stroke="#059669" stroke-width="1.8" fill="none" marker-end="url(#arr-p-green)" />
+      <text x="180" y="162" text-anchor="middle" font-size="8.5" font-weight="600" fill="#065f46">Timestamps &amp; Types</text>
+
+      <!-- P4.1 -> P4.2: Computed Raw Hours per Employee -->
+      <path d="M 530 138 L 620 138" stroke="#3b82f6" stroke-width="1.8" fill="none" marker-end="url(#arr-p-blue)" />
+      <text x="575" y="130" text-anchor="middle" font-size="8.5" font-weight="600" fill="#1e40af">Total Work Hours</text>
+
+      <!-- D1 -> P4.2: Fetch Role Rates ($30, $25, $15) -->
+      <path d="M 530 290 L 680 290 L 680 185" stroke="#3b82f6" stroke-width="1.8" fill="none" marker-end="url(#arr-p-blue)" />
+      <text x="610" y="282" text-anchor="middle" font-size="8.5" font-weight="600" fill="#1e40af">Role Hourly Rates</text>
+
+      <!-- P4.2 -> P4.3: Gross Pay Breakdown (Base + 1.5x OT) -->
+      <path d="M 880 138 L 970 138" stroke="#3b82f6" stroke-width="1.8" fill="none" marker-end="url(#arr-p-blue)" />
+      <text x="925" y="130" text-anchor="middle" font-size="8.5" font-weight="600" fill="#1e40af">Gross &amp; OT Pay</text>
+
+      <!-- P4.3 -> D5: Persist Payroll Ledger -->
+      <path d="M 1100 185 L 1100 290 L 1090 290" stroke="#059669" stroke-width="1.8" fill="none" marker-end="url(#arr-p-green)" />
+      <text x="1105" y="240" text-anchor="start" font-size="8.5" font-weight="600" fill="#065f46">INSERT / UPDATE Ledgers</text>
+
+      <!-- E1 (Worker) <-> D5: Digital Payslip View & Print -->
+      <path d="M 190 550 L 800 550 L 800 312" stroke="#3b82f6" stroke-width="1.8" fill="none" marker-end="url(#arr-p-blue)" />
+      <text x="450" y="542" text-anchor="middle" font-size="9" font-weight="600" fill="#1e40af">Query &amp; Print Personal Monthly Payslip</text>
+
+      <!-- D5 -> P6.1: Overtime Hours for Statistical Outlier Analysis -->
+      <path d="M 820 312 L 820 440" stroke="#e11d48" stroke-width="1.8" fill="none" marker-end="url(#arr-p-rose)" />
+      <text x="830" y="380" text-anchor="start" font-size="8.5" font-weight="600" fill="#9f1239">Monthly OT Hours Array</text>
+
+      <!-- D3 -> P6.2: Timestamps for Concurrent Punch Scan -->
+      <path d="M 115 312 L 115 480 L 270 480" stroke="#e11d48" stroke-width="1.8" fill="none" marker-end="url(#arr-p-rose)" />
+      <text x="180" y="472" text-anchor="middle" font-size="8.5" font-weight="600" fill="#9f1239">7-Day Punch History</text>
+
+      <!-- P6.2 -> D7: Write Buddy Punch Flags -->
+      <path d="M 400 535 L 400 700 L 620 700" stroke="#e11d48" stroke-width="1.8" fill="none" marker-end="url(#arr-p-rose)" />
+      <text x="490" y="692" text-anchor="middle" font-size="8.5" font-weight="600" fill="#9f1239">Simultaneous Punch Flag</text>
+
+      <!-- P6.1 -> D7: Write Overtime Outlier Flags (Z > 1.5) -->
+      <path d="M 750 535 L 750 680" stroke="#e11d48" stroke-width="1.8" fill="none" marker-end="url(#arr-p-rose)" />
+      <text x="760" y="610" text-anchor="start" font-size="8.5" font-weight="600" fill="#9f1239">Overtime Outlier Flag</text>
+
+      <!-- D7 -> P6.3: Aggregate Active Anomaly Summary -->
+      <path d="M 880 700 L 970 700 L 970 535" stroke="#8b5cf6" stroke-width="1.8" fill="none" marker-end="url(#arr-p-purple)" />
+      <text x="980" y="620" text-anchor="start" font-size="8.5" font-weight="600" fill="#6d28d9">Unresolved Anomaly List</text>
+
+      <!-- P6.3 <-> E5: Request AI Forensic Summary -->
+      <path d="M 1230 488 L 1285 488 L 1285 680" stroke="#8b5cf6" stroke-width="1.8" fill="none" marker-end="url(#arr-p-purple)" />
+      <text x="1295" y="580" text-anchor="start" font-size="8.5" font-weight="600" fill="#6d28d9">Prompt with Anomaly Context</text>
+
+      <!-- P6.3 -> D7: Update Flags with AI Digest Text -->
+      <path d="M 1100 535 L 1100 710 L 880 710" stroke="#8b5cf6" stroke-width="1.8" fill="none" marker-end="url(#arr-p-purple)" />
+      <text x="1000" y="725" text-anchor="middle" font-size="8.5" font-weight="600" fill="#6d28d9">Store AI Digest</text>
+
+      <!-- E3 (HR) <-> D7: Review & Update Flag Status (Confirmed / Dismissed) -->
+      <path d="M 190 145 L 230 145 L 230 750 L 620 750 L 620 722" stroke="#e11d48" stroke-width="1.8" fill="none" marker-end="url(#arr-p-rose)" />
+      <text x="320" y="742" text-anchor="middle" font-size="9" font-weight="600" fill="#9f1239">Triage Anomaly: Confirm / Dismiss</text>
+
+      <!-- FOOTER -->
+      <rect x="40" y="905" width="1320" height="30" rx="4" fill="#f8fafc" stroke="#cbd5e1" stroke-width="1"/>
+      <text x="60" y="924" font-size="11" font-weight="700" fill="#1e40af">COMPLIANCE &amp; FORENSIC RULES:</text>
+      <text x="250" y="924" font-size="10" fill="#475569">4.1: Pair Check_In &amp; Check_Out chronologically</text>
+      <text x="560" y="924" font-size="10" fill="#475569">4.2: Hours &gt; 8.0 split into 1.5x Overtime Wage</text>
+      <text x="890" y="924" font-size="10" fill="#475569">6.1: Z-Score &gt; 1.5 Standard Deviation Trigger</text>
+      <text x="1180" y="924" font-size="10" font-weight="600" fill="#9f1239">6.3: AI Executive Digest</text>
+    </svg>

@@ -73,7 +73,7 @@ export async function POST(request: Request) {
       return NextResponse.json({ success: false, error: 'Name and Email are required.' }, { status: 400 });
     }
 
-    const rawPassword = password || 'worker123';
+    const rawPassword = password || 'Worker123@';
     const hashedPassword = bcrypt.hashSync(rawPassword, 10);
 
     await db.query(

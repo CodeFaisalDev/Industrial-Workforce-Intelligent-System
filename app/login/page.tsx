@@ -6,8 +6,8 @@ import { useRouter, useSearchParams } from 'next/navigation';
 import Link from 'next/link';
 import { 
   Terminal, Lock, Mail, AlertCircle, Loader2, Eye, EyeOff, 
-  ArrowLeft, ShieldCheck, Cpu, Sparkles, CheckCircle2,
-  Users, Activity, UserCheck, ArrowRight, KeyRound
+  ArrowLeft, ShieldCheck, Cpu, CheckCircle2,
+  Activity, ArrowRight, KeyRound
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -24,7 +24,6 @@ function LoginForm() {
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
   const [showPassword, setShowPassword] = useState(false);
-  const [activeRole, setActiveRole] = useState<'admin' | 'manager' | 'worker'>('admin');
 
   // Redirect if already authenticated
   useEffect(() => {
@@ -73,21 +72,6 @@ function LoginForm() {
     }
   };
 
-  const handleQuickRoleSelect = (role: 'admin' | 'manager' | 'worker') => {
-    setActiveRole(role);
-    setError('');
-    if (role === 'admin') {
-      setEmail('admin@industrialintel.com');
-      setPassword('admin123');
-    } else if (role === 'manager') {
-      setEmail('manager@industrialintel.com');
-      setPassword('manager123');
-    } else {
-      setEmail('worker@industrialintel.com');
-      setPassword('worker123');
-    }
-  };
-
   if (status === 'loading') {
     return (
       <div className="flex flex-col items-center justify-center p-12 space-y-3">
@@ -106,58 +90,6 @@ function LoginForm() {
         </div>
       )}
 
-      {/* Quick Demo Access Role Tabs */}
-      <div className="space-y-2">
-        <div className="flex items-center justify-between">
-          <span className="text-[10px] font-bold uppercase tracking-wider text-muted-foreground font-mono flex items-center gap-1.5">
-            <Sparkles size={12} className="text-primary animate-pulse" />
-            Quick Demo Persona
-          </span>
-          <span className="text-[9px] text-muted-foreground/70 font-mono">Click to autofill</span>
-        </div>
-
-        <div className="grid grid-cols-3 gap-1.5 p-1 rounded-xl bg-secondary/30 border border-border/60 backdrop-blur-sm">
-          <button
-            type="button"
-            onClick={() => handleQuickRoleSelect('admin')}
-            className={`flex flex-col items-center justify-center py-2 px-1 rounded-lg text-xs font-semibold transition-all cursor-pointer ${
-              activeRole === 'admin'
-                ? 'bg-primary text-primary-foreground shadow-md shadow-primary/25 scale-[1.02]'
-                : 'text-muted-foreground hover:text-foreground hover:bg-secondary/50'
-            }`}
-          >
-            <ShieldCheck size={14} className="mb-0.5" />
-            <span className="text-[11px]">HR Admin</span>
-          </button>
-
-          <button
-            type="button"
-            onClick={() => handleQuickRoleSelect('manager')}
-            className={`flex flex-col items-center justify-center py-2 px-1 rounded-lg text-xs font-semibold transition-all cursor-pointer ${
-              activeRole === 'manager'
-                ? 'bg-emerald-600 text-white shadow-md shadow-emerald-600/25 scale-[1.02]'
-                : 'text-muted-foreground hover:text-foreground hover:bg-secondary/50'
-            }`}
-          >
-            <Users size={14} className="mb-0.5" />
-            <span className="text-[11px]">Manager</span>
-          </button>
-
-          <button
-            type="button"
-            onClick={() => handleQuickRoleSelect('worker')}
-            className={`flex flex-col items-center justify-center py-2 px-1 rounded-lg text-xs font-semibold transition-all cursor-pointer ${
-              activeRole === 'worker'
-                ? 'bg-blue-600 text-white shadow-md shadow-blue-600/25 scale-[1.02]'
-                : 'text-muted-foreground hover:text-foreground hover:bg-secondary/50'
-            }`}
-          >
-            <UserCheck size={14} className="mb-0.5" />
-            <span className="text-[11px]">Worker</span>
-          </button>
-        </div>
-      </div>
-
       {/* Input Fields */}
       <div className="space-y-4">
         <div className="space-y-1.5">
@@ -169,7 +101,7 @@ function LoginForm() {
             <Input
               id="email"
               type="email"
-              placeholder="admin@industrialintel.com"
+              placeholder="name@company.com"
               value={email}
               onChange={(e) => setEmail(e.target.value)}
               className="pl-10 text-xs h-10 bg-secondary/20 hover:bg-secondary/35 focus:bg-background border-border/80 focus-visible:ring-2 focus-visible:ring-primary/40 focus-visible:border-primary transition-all rounded-xl"

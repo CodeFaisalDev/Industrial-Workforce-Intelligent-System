@@ -5,7 +5,7 @@ import {
   Users, Calendar, CreditCard, ShieldAlert, LayoutDashboard, 
   Terminal, Menu, X, MessageSquare, Sun, Moon, Clock, UserCheck,
   Umbrella, Bell, AlertTriangle, CheckCircle2, ChevronLeft, ChevronRight,
-  Sparkles, PanelLeft
+  Sparkles, PanelLeft, Layers
 } from 'lucide-react';
 import { Button } from './ui/button';
 import {
@@ -37,6 +37,7 @@ const NAV_ITEMS = [
   { id: 'leave', name: 'Leave & Absence', icon: Umbrella, roles: ['HR Admin', 'Floor Manager', 'Worker'] },
   { id: 'payroll', name: 'Payroll Center', icon: CreditCard, roles: ['HR Admin', 'Worker'] },
   { id: 'fraud', name: 'Fraud Queue', icon: ShieldAlert, roles: ['HR Admin'] },
+  { id: 'architecture', name: 'Architecture & UML', icon: Layers, roles: ['HR Admin', 'Floor Manager', 'Worker'] },
 ];
 
 export function Sidebar({ 

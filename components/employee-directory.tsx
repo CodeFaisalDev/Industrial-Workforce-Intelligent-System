@@ -282,7 +282,7 @@ export default function EmployeeDirectory({ role: userRole, userId }: DirectoryP
               </div>
               <div className="space-y-1">
                 <Label htmlFor="passwordInput" className="text-xs font-semibold">Login Password</Label>
-                <Input id="passwordInput" type="password" value={password} onChange={(e) => setPassword(e.target.value)} placeholder="Enter password (e.g. worker123)" className="text-xs" required />
+                <Input id="passwordInput" type="password" value={password} onChange={(e) => setPassword(e.target.value)} placeholder="Enter password (e.g. Worker123@)" className="text-xs" required />
               </div>
               <div className="grid grid-cols-2 gap-4">
                 <div className="space-y-1">

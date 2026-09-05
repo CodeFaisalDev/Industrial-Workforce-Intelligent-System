@@ -1,0 +1,209 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1400 950" width="100%" height="100%" style="background:#ffffff; font-family: 'Segoe UI', -apple-system, BlinkMacSystemFont, Roboto, sans-serif;">
+      <defs>
+        <marker id="arr-green" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
+          <path d="M 0 1 L 10 5 L 0 9 z" fill="#059669" />
+        </marker>
+        <marker id="arr-red" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
+          <path d="M 0 1 L 10 5 L 0 9 z" fill="#e11d48" />
+        </marker>
+        <marker id="arr-blue" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
+          <path d="M 0 1 L 10 5 L 0 9 z" fill="#3b82f6" />
+        </marker>
+        <filter id="shadow2" x="-5%" y="-5%" width="115%" height="115%">
+          <feDropShadow dx="2" dy="2" stdDeviation="3" flood-opacity="0.08" />
+        </filter>
+        <linearGradient id="grad-entity2" x1="0%" y1="0%" x2="100%" y2="100%">
+          <stop offset="0%" stop-color="#1e293b" />
+          <stop offset="100%" stop-color="#0f172a" />
+        </linearGradient>
+        <linearGradient id="grad-p2" x1="0%" y1="0%" x2="0%" y2="100%">
+          <stop offset="0%" stop-color="#f0fdf4" />
+          <stop offset="100%" stop-color="#dcfce7" />
+        </linearGradient>
+      </defs>
+
+      <!-- Background -->
+      <pattern id="grid2" width="40" height="40" patternUnits="userSpaceOnUse">
+        <path d="M 40 0 L 0 0 0 40" fill="none" stroke="#f1f5f9" stroke-width="1"/>
+      </pattern>
+      <rect width="1400" height="950" fill="url(#grid2)" />
+
+      <!-- TITLE -->
+      <text x="700" y="35" text-anchor="middle" font-size="20" font-weight="800" fill="#065f46" letter-spacing="0.5">
+        LEVEL 2 DATA FLOW DIAGRAM: SUBSYSTEM 2.0 (BIOMETRIC ATTENDANCE &amp; GEOFENCE INGESTION)
+      </text>
+      <text x="700" y="55" text-anchor="middle" font-size="12" fill="#64748b" font-weight="500">
+        Detailed Subprocess Decomposition: Webcam Liveness Challenge, IndexedDB Offline Sync, pgvector Distance &amp; Geofencing
+      </text>
+
+      <!-- ================= EXTERNAL ENTITIES ================= -->
+      <!-- E1: Floor Worker -->
+      <g filter="url(#shadow2)">
+        <rect x="40" y="120" width="150" height="75" rx="6" fill="url(#grad-entity2)" stroke="#334155" stroke-width="2"/>
+        <text x="115" y="152" text-anchor="middle" fill="#38bdf8" font-size="11" font-weight="700">ENTITY: E1</text>
+        <text x="115" y="174" text-anchor="middle" fill="#ffffff" font-size="13" font-weight="700">Floor Worker (Face/GPS)</text>
+      </g>
+
+      <!-- E4: Tablet / Kiosk Camera Device -->
+      <g filter="url(#shadow2)">
+        <rect x="40" y="320" width="150" height="75" rx="6" fill="url(#grad-entity2)" stroke="#334155" stroke-width="2"/>
+        <text x="115" y="352" text-anchor="middle" fill="#38bdf8" font-size="11" font-weight="700">ENTITY: E4</text>
+        <text x="115" y="374" text-anchor="middle" fill="#ffffff" font-size="13" font-weight="700">Gate Kiosk Terminal</text>
+      </g>
+
+      <!-- E3: HR Admin (Audit Flag Review) -->
+      <g filter="url(#shadow2)">
+        <rect x="1210" y="720" width="150" height="75" rx="6" fill="url(#grad-entity2)" stroke="#334155" stroke-width="2"/>
+        <text x="1285" y="752" text-anchor="middle" fill="#f43f5e" font-size="11" font-weight="700">ENTITY: E3</text>
+        <text x="1285" y="774" text-anchor="middle" fill="#ffffff" font-size="13" font-weight="700">HR Administrator</text>
+      </g>
+
+      <!-- ================= LEVEL 2 SUBPROCESSES (2.1 to 2.5) ================= -->
+      <!-- P2.1: Webcam & Liveness -->
+      <g filter="url(#shadow2)">
+        <rect x="270" y="110" width="250" height="95" rx="8" fill="url(#grad-p2)" stroke="#059669" stroke-width="2"/>
+        <path d="M 270 110 Q 270 110 270 135 L 520 135 Q 520 110 520 110 Z" fill="#059669"/>
+        <text x="395" y="128" text-anchor="middle" fill="#ffffff" font-size="11" font-weight="700">SUBPROCESS 2.1</text>
+        <text x="395" y="158" text-anchor="middle" fill="#065f46" font-size="12" font-weight="700">Webcam Capture &amp; Liveness Challenge</text>
+        <text x="395" y="176" text-anchor="middle" fill="#047857" font-size="10">Head-Tilt/Blink Validation &amp; 128d Extraction</text>
+      </g>
+
+      <!-- P2.2: IndexedDB Offline Sync -->
+      <g filter="url(#shadow2)">
+        <rect x="270" y="310" width="250" height="95" rx="8" fill="url(#grad-p2)" stroke="#059669" stroke-width="2"/>
+        <path d="M 270 310 Q 270 310 270 335 L 520 335 Q 520 310 520 310 Z" fill="#059669"/>
+        <text x="395" y="328" text-anchor="middle" fill="#ffffff" font-size="11" font-weight="700">SUBPROCESS 2.2</text>
+        <text x="395" y="358" text-anchor="middle" fill="#065f46" font-size="12" font-weight="700">Offline Caching &amp; Auto-Sync Manager</text>
+        <text x="395" y="376" text-anchor="middle" fill="#047857" font-size="10">IndexedDB Buffer &amp; Reconnection Sync</text>
+      </g>
+
+      <!-- P2.3: pgvector Similarity Matching -->
+      <g filter="url(#shadow2)">
+        <rect x="620" y="210" width="260" height="95" rx="8" fill="url(#grad-p2)" stroke="#059669" stroke-width="2"/>
+        <path d="M 620 210 Q 620 210 620 235 L 880 235 Q 880 210 880 210 Z" fill="#059669"/>
+        <text x="750" y="228" text-anchor="middle" fill="#ffffff" font-size="11" font-weight="700">SUBPROCESS 2.3</text>
+        <text x="750" y="258" text-anchor="middle" fill="#065f46" font-size="12" font-weight="700">pgvector Euclidean Distance Matcher</text>
+        <text x="750" y="276" text-anchor="middle" fill="#047857" font-size="10">&lt;-&gt; Operator (Threshold: distance &lt;= 0.05)</text>
+      </g>
+
+      <!-- P2.4: Haversine Geofence Validator -->
+      <g filter="url(#shadow2)">
+        <rect x="970" y="210" width="250" height="95" rx="8" fill="url(#grad-p2)" stroke="#059669" stroke-width="2"/>
+        <path d="M 970 210 Q 970 210 970 235 L 1220 235 Q 1220 210 1220 210 Z" fill="#059669"/>
+        <text x="1095" y="228" text-anchor="middle" fill="#ffffff" font-size="11" font-weight="700">SUBPROCESS 2.4</text>
+        <text x="1095" y="258" text-anchor="middle" fill="#065f46" font-size="12" font-weight="700">Haversine GPS Geofence Validator</text>
+        <text x="1095" y="276" text-anchor="middle" fill="#047857" font-size="10">Radius Check: &lt;= 100m from Factory Gate</text>
+      </g>
+
+      <!-- P2.5: Attendance Log & Shift Finalizer -->
+      <g filter="url(#shadow2)">
+        <rect x="620" y="520" width="260" height="95" rx="8" fill="url(#grad-p2)" stroke="#059669" stroke-width="2"/>
+        <path d="M 620 520 Q 620 520 620 545 L 880 545 Q 880 520 880 520 Z" fill="#059669"/>
+        <text x="750" y="538" text-anchor="middle" fill="#ffffff" font-size="11" font-weight="700">SUBPROCESS 2.5</text>
+        <text x="750" y="568" text-anchor="middle" fill="#065f46" font-size="12" font-weight="700">Attendance Logger &amp; Shift Finalizer</text>
+        <text x="750" y="586" text-anchor="middle" fill="#047857" font-size="10">Records Punch &amp; Updates Shift Status</text>
+      </g>
+
+      <!-- ================= LOCAL DATA STORES ================= -->
+      <!-- D2.1: Client IndexedDB (kiosk_offline_db) -->
+      <g>
+        <rect x="270" y="470" width="250" height="42" fill="#f8fafc" stroke="#059669" stroke-width="1.5"/>
+        <path d="M 270 470 L 270 512 M 320 470 L 320 512" stroke="#059669" stroke-width="2"/>
+        <text x="295" y="496" text-anchor="middle" font-size="11" font-weight="800" fill="#059669">L-DB</text>
+        <text x="420" y="496" text-anchor="middle" font-size="10.5" font-weight="600" fill="#1e293b">Client IndexedDB (kiosk_offline_db)</text>
+      </g>
+
+      <!-- D2: Face Embeddings -->
+      <g>
+        <rect x="620" y="80" width="260" height="42" fill="#f8fafc" stroke="#64748b" stroke-width="1.5"/>
+        <path d="M 620 80 L 620 122 M 670 80 L 670 122" stroke="#059669" stroke-width="2"/>
+        <text x="645" y="106" text-anchor="middle" font-size="11" font-weight="800" fill="#059669">D2</text>
+        <text x="770" y="106" text-anchor="middle" font-size="10.5" font-weight="600" fill="#1e293b">face_embeddings (pgvector 128d)</text>
+      </g>
+
+      <!-- D3: Biometric Logs & Attempts -->
+      <g>
+        <rect x="620" y="730" width="260" height="42" fill="#f8fafc" stroke="#64748b" stroke-width="1.5"/>
+        <path d="M 620 730 L 620 772 M 670 730 L 670 772" stroke="#059669" stroke-width="2"/>
+        <text x="645" y="756" text-anchor="middle" font-size="11" font-weight="800" fill="#059669">D3</text>
+        <text x="770" y="756" text-anchor="middle" font-size="10.5" font-weight="600" fill="#1e293b">biometric_logs, attempts</text>
+      </g>
+
+      <!-- D4: Shifts -->
+      <g>
+        <rect x="270" y="730" width="250" height="42" fill="#f8fafc" stroke="#64748b" stroke-width="1.5"/>
+        <path d="M 270 730 L 270 772 M 320 730 L 320 772" stroke="#3b82f6" stroke-width="2"/>
+        <text x="295" y="756" text-anchor="middle" font-size="11" font-weight="800" fill="#3b82f6">D4</text>
+        <text x="420" y="756" text-anchor="middle" font-size="10.5" font-weight="600" fill="#1e293b">shifts (Roster Status)</text>
+      </g>
+
+      <!-- D7: Fraud Flags -->
+      <g>
+        <rect x="970" y="730" width="250" height="42" fill="#f8fafc" stroke="#64748b" stroke-width="1.5"/>
+        <path d="M 970 730 L 970 772 M 1020 730 L 1020 772" stroke="#e11d48" stroke-width="2"/>
+        <text x="995" y="756" text-anchor="middle" font-size="11" font-weight="800" fill="#e11d48">D7</text>
+        <text x="1120" y="756" text-anchor="middle" font-size="10.5" font-weight="600" fill="#1e293b">fraud_flags (Geofence / Buddy)</text>
+      </g>
+
+      <!-- ================= DATA FLOWS ================= -->
+      <!-- E1 -> P2.1: Face Image Video Stream -->
+      <path d="M 190 145 L 270 145" stroke="#059669" stroke-width="1.8" fill="none" marker-end="url(#arr-green)" />
+      <text x="230" y="138" text-anchor="middle" font-size="9" font-weight="600" fill="#065f46">Webcam Frames</text>
+
+      <!-- P2.1 -> P2.2: Verified 128d Descriptor + GPS -->
+      <path d="M 395 205 L 395 310" stroke="#059669" stroke-width="1.8" fill="none" marker-end="url(#arr-green)" />
+      <text x="405" y="255" text-anchor="start" font-size="9" font-weight="600" fill="#065f46">Liveness OK: [128-float, Lat, Lng]</text>
+
+      <!-- P2.2 <-> L-DB: Save if offline, read on connect -->
+      <path d="M 395 405 L 395 470" stroke="#059669" stroke-width="1.8" fill="none" marker-end="url(#arr-green)" />
+      <text x="405" y="440" text-anchor="start" font-size="9" font-weight="600" fill="#065f46">Buffer Unsynced Punch (synced:0)</text>
+
+      <!-- P2.2 -> P2.3: Transmit payload to Server API -->
+      <path d="M 520 350 L 570 350 L 570 255 L 620 255" stroke="#059669" stroke-width="1.8" fill="none" marker-end="url(#arr-green)" />
+      <text x="575" y="295" text-anchor="middle" font-size="9" font-weight="600" fill="#065f46" transform="rotate(-90 570 295)">HTTP POST /api/attendance</text>
+
+      <!-- P2.3 <-> D2: Execute SQL Distance Query -->
+      <path d="M 750 210 L 750 122" stroke="#059669" stroke-width="1.8" fill="none" marker-end="url(#arr-green)" />
+      <text x="760" y="165" text-anchor="start" font-size="8.5" font-weight="600" fill="#065f46">SELECT embedding &lt;-&gt; $1::vector</text>
+
+      <!-- P2.3 -> D7: Match Mismatch / Buddy Punch Flag -->
+      <path d="M 880 240 L 930 240 L 930 650 L 1030 730" stroke="#e11d48" stroke-width="1.8" fill="none" marker-end="url(#arr-red)" />
+      <text x="940" y="450" text-anchor="middle" font-size="8.5" font-weight="600" fill="#9f1239" transform="rotate(90 940 450)">Distance &gt; 0.05 (Biometric Mismatch)</text>
+
+      <!-- P2.3 -> P2.4: Valid Biometric -> Evaluate GPS Coordinates -->
+      <path d="M 880 270 L 970 270" stroke="#059669" stroke-width="1.8" fill="none" marker-end="url(#arr-green)" />
+      <text x="925" y="262" text-anchor="middle" font-size="8.5" font-weight="600" fill="#065f46">Match Confirmed</text>
+
+      <!-- P2.4 -> D7: Haversine &gt; 100m -> Geofence Violation Flag -->
+      <path d="M 1095 305 L 1095 730" stroke="#e11d48" stroke-width="1.8" fill="none" marker-end="url(#arr-red)" />
+      <text x="1105" y="480" text-anchor="start" font-size="8.5" font-weight="600" fill="#9f1239">Distance &gt; 100m (Geofence Breach)</text>
+
+      <!-- P2.4 -> P2.5: Geofence OK / Log Validated -->
+      <path d="M 1040 305 L 1040 480 L 800 480 L 800 520" stroke="#059669" stroke-width="1.8" fill="none" marker-end="url(#arr-green)" />
+      <text x="920" y="472" text-anchor="middle" font-size="9" font-weight="600" fill="#065f46">Validated Attendance Packet</text>
+
+      <!-- P2.5 -> D3: Insert Verified Biometric Log -->
+      <path d="M 750 615 L 750 730" stroke="#059669" stroke-width="1.8" fill="none" marker-end="url(#arr-green)" />
+      <text x="760" y="675" text-anchor="start" font-size="8.5" font-weight="600" fill="#065f46">INSERT biometric_logs</text>
+
+      <!-- P2.5 -> D4: Update Shift Status to 'Completed' -->
+      <path d="M 680 615 L 680 690 L 450 690 L 450 730" stroke="#3b82f6" stroke-width="1.8" fill="none" marker-end="url(#arr-blue)" />
+      <text x="565" y="682" text-anchor="middle" font-size="8.5" font-weight="600" fill="#1e40af">UPDATE shifts SET status='Completed'</text>
+
+      <!-- D7 -> E3: Dispatch Anomaly Alert to HR Admin -->
+      <path d="M 1220 750 L 1210 750" stroke="#e11d48" stroke-width="1.8" fill="none" marker-end="url(#arr-red)" />
+      <text x="1215" y="742" text-anchor="middle" font-size="8.5" font-weight="600" fill="#9f1239">Alert Dispatch</text>
+
+      <!-- P2.5 -> E4: Return Success Status to Terminal -->
+      <path d="M 620 570 L 115 570 L 115 395" stroke="#059669" stroke-width="1.8" fill="none" marker-end="url(#arr-green)" />
+      <text x="240" y="562" text-anchor="middle" font-size="9" font-weight="600" fill="#065f46">200 OK: Attendance Registered Confirmation</text>
+
+      <!-- FOOTER -->
+      <rect x="40" y="905" width="1320" height="30" rx="4" fill="#f8fafc" stroke="#cbd5e1" stroke-width="1"/>
+      <text x="60" y="924" font-size="11" font-weight="700" fill="#065f46">SUBPROCESS DETAILS:</text>
+      <text x="210" y="924" font-size="10" fill="#475569">2.1: Face Node Extraction &amp; Challenge</text>
+      <text x="470" y="924" font-size="10" fill="#475569">2.2: IndexedDB Transactional Sync</text>
+      <text x="710" y="924" font-size="10" fill="#475569">2.3: pgvector Vector Distance Check</text>
+      <text x="960" y="924" font-size="10" fill="#475569">2.4: Haversine Geofence</text>
+      <text x="1140" y="924" font-size="10" font-weight="600" fill="#059669">2.5: Shift State Transition</text>
+    </svg>

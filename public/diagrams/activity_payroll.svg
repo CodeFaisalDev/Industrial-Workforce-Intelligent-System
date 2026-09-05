@@ -1,0 +1,138 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1400 950" width="100%" height="100%" style="background:#ffffff; font-family: 'Segoe UI', -apple-system, BlinkMacSystemFont, Roboto, sans-serif;">
+      <defs>
+        <marker id="pay-arr" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
+          <path d="M 0 1 L 10 5 L 0 9 z" fill="#0f172a" />
+        </marker>
+        <filter id="pay-shadow" x="-5%" y="-5%" width="115%" height="115%">
+          <feDropShadow dx="2" dy="2" stdDeviation="3" flood-opacity="0.08" />
+        </filter>
+      </defs>
+
+      <!-- Background Grid -->
+      <pattern id="pay-grid" width="40" height="40" patternUnits="userSpaceOnUse">
+        <path d="M 40 0 L 0 0 0 40" fill="none" stroke="#f1f5f9" stroke-width="1"/>
+      </pattern>
+      <rect width="1400" height="950" fill="url(#pay-grid)" />
+
+      <!-- TITLE -->
+      <text x="700" y="34" text-anchor="middle" font-size="21" font-weight="800" fill="#0f172a" letter-spacing="0.5">
+        UML ACTIVITY SPECIFICATION: DETERMINISTIC PAYROLL &amp; OVERTIME ENGINE
+      </text>
+      <text x="700" y="54" text-anchor="middle" font-size="12" fill="#64748b" font-weight="500">
+        Execution Protocol: Biometric Pair Matching, 1.5x Overtime Segmentation, Statutory 10% Deduction &amp; Payslip Ledger
+      </text>
+
+      <!-- ================= SWIMLANES (4 PARTITIONS) ================= -->
+      <!-- Lane 1: HR Admin / Trigger -->
+      <rect x="50" y="75" width="280" height="850" fill="#ffffff" stroke="#cbd5e1" stroke-width="1.5"/>
+      <rect x="50" y="75" width="280" height="35" fill="#1e293b"/>
+      <text x="190" y="98" text-anchor="middle" font-size="12" font-weight="800" fill="#38bdf8">SWIMLANE: HR ADMIN / TRIGGER</text>
+
+      <!-- Lane 2: Payroll Engine Controller -->
+      <rect x="330" y="75" width="340" height="850" fill="#f8fafc" stroke="#cbd5e1" stroke-width="1.5"/>
+      <rect x="330" y="75" width="340" height="35" fill="#1e293b"/>
+      <text x="500" y="98" text-anchor="middle" font-size="12" font-weight="800" fill="#a78bfa">SWIMLANE: PAYROLL ENGINE (/api/payroll)</text>
+
+      <!-- Lane 3: Mathematical Processing Unit -->
+      <rect x="670" y="75" width="340" height="850" fill="#ffffff" stroke="#cbd5e1" stroke-width="1.5"/>
+      <rect x="670" y="75" width="340" height="35" fill="#1e293b"/>
+      <text x="840" y="98" text-anchor="middle" font-size="12" font-weight="800" fill="#38bdf8">SWIMLANE: DETERMINISTIC MATH RULES</text>
+
+      <!-- Lane 4: Ledger & Slip Storage -->
+      <rect x="1010" y="75" width="340" height="850" fill="#f8fafc" stroke="#cbd5e1" stroke-width="1.5"/>
+      <rect x="1010" y="75" width="340" height="35" fill="#1e293b"/>
+      <text x="1180" y="98" text-anchor="middle" font-size="12" font-weight="800" fill="#34d399">SWIMLANE: LEDGER REPOSITORY &amp; PDF</text>
+
+      <!-- ================= ACTIVITIES ================= -->
+      <!-- Start Node -->
+      <circle cx="190" cy="140" r="14" fill="#0f172a"/>
+      <line x1="190" y1="154" x2="190" y2="190" stroke="#0f172a" stroke-width="2" marker-end="url(#pay-arr)"/>
+
+      <!-- HR selects period -->
+      <rect x="90" y="190" width="200" height="50" rx="8" fill="#ffffff" stroke="#059669" stroke-width="1.8" filter="url(#pay-shadow)"/>
+      <text x="190" y="209" text-anchor="middle" font-size="10.5" font-weight="700" fill="#0f172a">Select Pay Period Range</text>
+      <text x="190" y="223" text-anchor="middle" font-size="9" fill="#64748b">Clicks 'Compute Monthly Payroll'</text>
+
+      <!-- Dispatch to Engine -->
+      <path d="M 290 215 L 400 215" stroke="#0f172a" stroke-width="2" marker-end="url(#pay-arr)"/>
+
+      <!-- Engine fetches active employees -->
+      <rect x="400" y="190" width="200" height="50" rx="8" fill="#ffffff" stroke="#7c3aed" stroke-width="1.8" filter="url(#pay-shadow)"/>
+      <text x="500" y="209" text-anchor="middle" font-size="10.5" font-weight="700" fill="#0f172a">Query Active Employees</text>
+      <text x="500" y="223" text-anchor="middle" font-size="9" fill="#64748b">WHERE status = 'Active' AND co_id = $1</text>
+
+      <line x1="500" y1="240" x2="500" y2="280" stroke="#0f172a" stroke-width="2" marker-end="url(#pay-arr)"/>
+
+      <!-- Fetch Biometric Logs -->
+      <rect x="400" y="280" width="200" height="50" rx="8" fill="#ffffff" stroke="#7c3aed" stroke-width="1.8" filter="url(#pay-shadow)"/>
+      <text x="500" y="299" text-anchor="middle" font-size="10.5" font-weight="700" fill="#0f172a">Fetch Biometric Logs</text>
+      <text x="500" y="313" text-anchor="middle" font-size="9" fill="#64748b">ORDER BY timestamp ASC</text>
+
+      <line x1="500" y1="330" x2="500" y2="370" stroke="#0f172a" stroke-width="2" marker-end="url(#pay-arr)"/>
+
+      <!-- Pair Check_In and Check_Out -->
+      <rect x="400" y="370" width="200" height="55" rx="8" fill="#ffffff" stroke="#7c3aed" stroke-width="1.8" filter="url(#pay-shadow)"/>
+      <text x="500" y="389" text-anchor="middle" font-size="10.5" font-weight="700" fill="#0f172a">Pair In/Out Punches</text>
+      <text x="500" y="403" text-anchor="middle" font-size="9" fill="#64748b">Compute elapsed hours H per shift</text>
+      <text x="500" y="415" text-anchor="middle" font-size="8.5" fill="#475569">Discard unpaired orphan punches</text>
+
+      <!-- Pass to Math Unit -->
+      <path d="M 600 397 L 740 397" stroke="#0f172a" stroke-width="2" marker-end="url(#pay-arr)"/>
+
+      <!-- Math: Segment Regular & Overtime -->
+      <rect x="740" y="370" width="200" height="55" rx="8" fill="#ffffff" stroke="#2563eb" stroke-width="1.8" filter="url(#pay-shadow)"/>
+      <text x="840" y="389" text-anchor="middle" font-size="10.5" font-weight="700" fill="#0f172a">Segment Work Hours</text>
+      <text x="840" y="403" text-anchor="middle" font-size="9" fill="#1e3a8a">H_reg = min(H, 8.0)</text>
+      <text x="840" y="415" text-anchor="middle" font-size="9" fill="#1e3a8a">H_ot = max(0, H - 8.0)</text>
+
+      <line x1="840" y1="425" x2="840" y2="465" stroke="#0f172a" stroke-width="2" marker-end="url(#pay-arr)"/>
+
+      <!-- Lookup Hourly Rate -->
+      <rect x="740" y="465" width="200" height="55" rx="8" fill="#ffffff" stroke="#2563eb" stroke-width="1.8" filter="url(#pay-shadow)"/>
+      <text x="840" y="484" text-anchor="middle" font-size="10.5" font-weight="700" fill="#0f172a">Lookup Role Hourly Wage</text>
+      <text x="840" y="498" text-anchor="middle" font-size="9" fill="#64748b">HR: $30/hr | MGR: $25/hr</text>
+      <text x="840" y="510" text-anchor="middle" font-size="9" fill="#64748b">Worker: $15/hr</text>
+
+      <line x1="840" y1="520" x2="840" y2="560" stroke="#0f172a" stroke-width="2" marker-end="url(#pay-arr)"/>
+
+      <!-- Compute Gross Pay -->
+      <rect x="740" y="560" width="200" height="55" rx="8" fill="#ffffff" stroke="#2563eb" stroke-width="1.8" filter="url(#pay-shadow)"/>
+      <text x="840" y="579" text-anchor="middle" font-size="10.5" font-weight="700" fill="#0f172a">Compute Gross Earnings</text>
+      <text x="840" y="593" text-anchor="middle" font-size="8.8" font-weight="700" fill="#1e40af">Gross = (H_reg * W) + (H_ot * W * 1.5)</text>
+      <text x="840" y="605" text-anchor="middle" font-size="8.5" fill="#64748b">150% Premium on Overtime</text>
+
+      <line x1="840" y1="615" x2="840" y2="655" stroke="#0f172a" stroke-width="2" marker-end="url(#pay-arr)"/>
+
+      <!-- Apply 10% Statutory Deduction -->
+      <rect x="740" y="655" width="200" height="55" rx="8" fill="#ffffff" stroke="#2563eb" stroke-width="1.8" filter="url(#pay-shadow)"/>
+      <text x="840" y="674" text-anchor="middle" font-size="10.5" font-weight="700" fill="#0f172a">Deductions &amp; Net Calculation</text>
+      <text x="840" y="688" text-anchor="middle" font-size="8.8" font-weight="700" fill="#1e40af">Deductions = Gross * 0.10 (Tax)</text>
+      <text x="840" y="700" text-anchor="middle" font-size="8.8" font-weight="700" fill="#1e40af">Net Pay = Gross - Deductions</text>
+
+      <!-- Pass to DB Store -->
+      <path d="M 940 682 L 1080 682" stroke="#0f172a" stroke-width="2" marker-end="url(#pay-arr)"/>
+
+      <!-- Upsert Payroll Ledger -->
+      <rect x="1080" y="655" width="200" height="55" rx="8" fill="#f0fdf4" stroke="#16a34a" stroke-width="1.8" filter="url(#pay-shadow)"/>
+      <text x="1180" y="674" text-anchor="middle" font-size="10.5" font-weight="700" fill="#14532d">Upsert into payroll_ledgers</text>
+      <text x="1180" y="688" text-anchor="middle" font-size="9" fill="#15803d">ON CONFLICT (emp_id, period)</text>
+      <text x="1180" y="700" text-anchor="middle" font-size="8.5" fill="#15803d">Status: 'Draft' / 'Approved'</text>
+
+      <line x1="1180" y1="710" x2="1180" y2="760" stroke="#0f172a" stroke-width="2" marker-end="url(#pay-arr)"/>
+
+      <!-- Generate Printable Payslip -->
+      <rect x="1080" y="760" width="200" height="55" rx="8" fill="#ffffff" stroke="#059669" stroke-width="1.8" filter="url(#pay-shadow)"/>
+      <text x="1180" y="779" text-anchor="middle" font-size="10.5" font-weight="700" fill="#065f46">Generate Itemized Payslip</text>
+      <text x="1180" y="793" text-anchor="middle" font-size="9" fill="#047857">Worker Self-Service Print Ready</text>
+
+      <!-- Return Confirmation to HR Admin -->
+      <path d="M 1180 815 L 1180 850 L 190 850" fill="none" stroke="#16a34a" stroke-width="2" marker-end="url(#pay-arr)"/>
+
+      <rect x="90" y="825" width="200" height="50" rx="8" fill="#f0fdf4" stroke="#16a34a" stroke-width="1.8" filter="url(#pay-shadow)"/>
+      <text x="190" y="844" text-anchor="middle" font-size="10.5" font-weight="700" fill="#14532d">Payroll Batch Complete</text>
+      <text x="190" y="858" text-anchor="middle" font-size="9" fill="#15803d">Real-Time Ledger Dashboard Updated</text>
+
+      <!-- End Node -->
+      <circle cx="190" cy="905" r="14" fill="#ffffff" stroke="#0f172a" stroke-width="2"/>
+      <circle cx="190" cy="905" r="8" fill="#0f172a"/>
+    </svg>

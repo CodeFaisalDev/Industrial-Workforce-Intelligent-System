@@ -305,9 +305,9 @@ async function run() {
     await client.query("INSERT INTO departments (name, company_id) VALUES ('Assembly Line 1', $1), ('Packaging & Sorting', $1), ('Quality Assurance', $1), ('Maintenance & Logistics', $1)", [companyId]);
 
     // Seed Employees
-    const kafiHash = bcrypt.hashSync('admin123', 10);
-    const managerHash = bcrypt.hashSync('manager123', 10);
-    const workerHash = bcrypt.hashSync('worker123', 10);
+    const kafiHash = bcrypt.hashSync('Admin123@', 10);
+    const managerHash = bcrypt.hashSync('Manager123@', 10);
+    const workerHash = bcrypt.hashSync('Worker123@', 10);
 
     console.log('Seeding employees (Admin, Manager, Workers)...');
     await client.query(

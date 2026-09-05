@@ -1,0 +1,168 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1400 950" width="100%" height="100%" style="background:#ffffff; font-family: 'Segoe UI', -apple-system, BlinkMacSystemFont, Roboto, sans-serif;">
+      <defs>
+        <marker id="act-arr" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
+          <path d="M 0 1 L 10 5 L 0 9 z" fill="#0f172a" />
+        </marker>
+        <marker id="act-arr-green" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
+          <path d="M 0 1 L 10 5 L 0 9 z" fill="#16a34a" />
+        </marker>
+        <marker id="act-arr-red" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
+          <path d="M 0 1 L 10 5 L 0 9 z" fill="#dc2626" />
+        </marker>
+        <filter id="act-shadow" x="-5%" y="-5%" width="115%" height="115%">
+          <feDropShadow dx="2" dy="2" stdDeviation="3" flood-opacity="0.08" />
+        </filter>
+      </defs>
+
+      <!-- Background Grid -->
+      <pattern id="act-grid" width="40" height="40" patternUnits="userSpaceOnUse">
+        <path d="M 40 0 L 0 0 0 40" fill="none" stroke="#f1f5f9" stroke-width="1"/>
+      </pattern>
+      <rect width="1400" height="950" fill="url(#act-grid)" />
+
+      <!-- TITLE -->
+      <text x="700" y="34" text-anchor="middle" font-size="21" font-weight="800" fill="#0f172a" letter-spacing="0.5">
+        UML ACTIVITY SPECIFICATION: BIOMETRIC KIOSK PUNCH &amp; RESILIENT SYNC
+      </text>
+      <text x="700" y="54" text-anchor="middle" font-size="12" fill="#64748b" font-weight="500">
+        Swimlane Execution: Edge Tablet Capture, pgvector Facial Euclidean Match, Haversine Geofencing &amp; Offline IndexedDB Caching
+      </text>
+
+      <!-- ================= SWIMLANES (5 PARTITIONS) ================= -->
+      <!-- Lane 1: Worker -->
+      <rect x="50" y="75" width="240" height="850" fill="#ffffff" stroke="#cbd5e1" stroke-width="1.5"/>
+      <rect x="50" y="75" width="240" height="35" fill="#1e293b"/>
+      <text x="170" y="98" text-anchor="middle" font-size="12" font-weight="800" fill="#38bdf8">SWIMLANE: WORKER</text>
+
+      <!-- Lane 2: Kiosk Edge Device -->
+      <rect x="290" y="75" width="280" height="850" fill="#f8fafc" stroke="#cbd5e1" stroke-width="1.5"/>
+      <rect x="290" y="75" width="280" height="35" fill="#1e293b"/>
+      <text x="430" y="98" text-anchor="middle" font-size="12" font-weight="800" fill="#38bdf8">SWIMLANE: KIOSK TABLET (EDGE)</text>
+
+      <!-- Lane 3: Local IndexedDB -->
+      <rect x="570" y="75" width="240" height="850" fill="#ffffff" stroke="#cbd5e1" stroke-width="1.5"/>
+      <rect x="570" y="75" width="240" height="35" fill="#1e293b"/>
+      <text x="690" y="98" text-anchor="middle" font-size="12" font-weight="800" fill="#facc15">SWIMLANE: INDEXEDDB CACHE</text>
+
+      <!-- Lane 4: Next.js Attendance API -->
+      <rect x="810" y="75" width="280" height="850" fill="#f8fafc" stroke="#cbd5e1" stroke-width="1.5"/>
+      <rect x="810" y="75" width="280" height="35" fill="#1e293b"/>
+      <text x="950" y="98" text-anchor="middle" font-size="12" font-weight="800" fill="#38bdf8">SWIMLANE: ATTENDANCE API</text>
+
+      <!-- Lane 5: PostgreSQL & Vector DB -->
+      <rect x="1090" y="75" width="260" height="850" fill="#ffffff" stroke="#cbd5e1" stroke-width="1.5"/>
+      <rect x="1090" y="75" width="260" height="35" fill="#1e293b"/>
+      <text x="1220" y="98" text-anchor="middle" font-size="12" font-weight="800" fill="#34d399">SWIMLANE: POSTGRESQL &amp; PGVECTOR</text>
+
+      <!-- ================= ACTIVITIES & DECISIONS ================= -->
+      <!-- START NODE -->
+      <circle cx="170" cy="140" r="14" fill="#0f172a"/>
+      <line x1="170" y1="154" x2="170" y2="185" stroke="#0f172a" stroke-width="2" marker-end="url(#act-arr)"/>
+
+      <!-- Node 1: Worker approaches terminal -->
+      <rect x="80" y="185" width="180" height="45" rx="8" fill="#ffffff" stroke="#3b82f6" stroke-width="1.8" filter="url(#act-shadow)"/>
+      <text x="170" y="204" text-anchor="middle" font-size="10.5" font-weight="700" fill="#0f172a">Worker Approaches Kiosk</text>
+      <text x="170" y="218" text-anchor="middle" font-size="9.5" fill="#64748b">Selects Name &amp; Punch Type</text>
+
+      <!-- Link to Kiosk -->
+      <path d="M 260 207 L 340 207" stroke="#0f172a" stroke-width="2" marker-end="url(#act-arr)"/>
+
+      <!-- Node 2: Kiosk Activates Camera -->
+      <rect x="340" y="185" width="180" height="45" rx="8" fill="#ffffff" stroke="#0284c7" stroke-width="1.8" filter="url(#act-shadow)"/>
+      <text x="430" y="204" text-anchor="middle" font-size="10.5" font-weight="700" fill="#0f172a">Activate Camera &amp; Sensors</text>
+      <text x="430" y="218" text-anchor="middle" font-size="9.5" fill="#64748b">Capture 128d Vector &amp; GPS</text>
+
+      <!-- Link down to Decision: Online? -->
+      <line x1="430" y1="230" x2="430" y2="265" stroke="#0f172a" stroke-width="2" marker-end="url(#act-arr)"/>
+
+      <!-- Decision 1: Network Online? -->
+      <polygon points="430,265 475,295 430,325 385,295" fill="#fffbeb" stroke="#d97706" stroke-width="1.8"/>
+      <text x="430" y="299" text-anchor="middle" font-size="9" font-weight="700" fill="#92400e">Online?</text>
+
+      <!-- Branch NO: Save to IndexedDB -->
+      <path d="M 475 295 L 610 295" stroke="#dc2626" stroke-width="2" marker-end="url(#act-arr)"/>
+      <text x="520" y="288" font-size="9" font-weight="700" fill="#dc2626">[No - Offline]</text>
+
+      <rect x="610" y="270" width="160" height="50" rx="8" fill="#fefce8" stroke="#ca8a04" stroke-width="1.8" filter="url(#act-shadow)"/>
+      <text x="690" y="291" text-anchor="middle" font-size="10" font-weight="700" fill="#854d0e">Store in IndexedDB</text>
+      <text x="690" y="306" text-anchor="middle" font-size="9" fill="#a16207">synced = 0 (kiosk_offline_db)</text>
+
+      <!-- Network Restoration Poller -->
+      <path d="M 690 320 L 690 380 L 460 380 L 460 330" fill="none" stroke="#ca8a04" stroke-width="1.5" stroke-dasharray="3 3"/>
+      <text x="560" y="372" font-size="8.5" font-weight="600" fill="#854d0e">Polls window.ononline</text>
+
+      <!-- Branch YES: Dispatch to API -->
+      <path d="M 430 325 L 430 430 L 860 430" fill="none" stroke="#16a34a" stroke-width="2" marker-end="url(#act-arr)"/>
+      <text x="440" y="350" font-size="9" font-weight="700" fill="#16a34a">[Yes - Online]</text>
+
+      <!-- Node 3: Next.js API Receives Punch -->
+      <rect x="860" y="410" width="180" height="45" rx="8" fill="#ffffff" stroke="#2563eb" stroke-width="1.8" filter="url(#act-shadow)"/>
+      <text x="950" y="429" text-anchor="middle" font-size="10.5" font-weight="700" fill="#0f172a">POST /api/attendance</text>
+      <text x="950" y="443" text-anchor="middle" font-size="9.5" fill="#64748b">Verify Auth &amp; Multi-Tenancy</text>
+
+      <!-- API to Postgres: Query Vector -->
+      <path d="M 1040 432 L 1130 432" stroke="#0f172a" stroke-width="2" marker-end="url(#act-arr)"/>
+
+      <!-- Node 4: Postgres pgvector Query -->
+      <rect x="1130" y="410" width="180" height="45" rx="8" fill="#ffffff" stroke="#059669" stroke-width="1.8" filter="url(#act-shadow)"/>
+      <text x="1220" y="429" text-anchor="middle" font-size="10.5" font-weight="700" fill="#065f46">pgvector Distance Query</text>
+      <text x="1220" y="443" text-anchor="middle" font-size="9" fill="#047857">embedding &lt;-&gt; $1 (Euclidean)</text>
+
+      <!-- Postgres returns distance to API -->
+      <path d="M 1220 455 L 1220 505 L 1000 505" fill="none" stroke="#0f172a" stroke-width="2" marker-end="url(#act-arr)"/>
+
+      <!-- Decision 2: Face Distance < 0.60? -->
+      <polygon points="950,480 1000,505 950,530 900,505" fill="#fffbeb" stroke="#d97706" stroke-width="1.8"/>
+      <text x="950" y="509" text-anchor="middle" font-size="8.5" font-weight="700" fill="#92400e">Dist &lt; 0.60?</text>
+
+      <!-- Fail Face: Reject -->
+      <path d="M 900 505 L 750 505 L 750 540" fill="none" stroke="#dc2626" stroke-width="2" marker-end="url(#act-arr)"/>
+      <text x="800" y="498" font-size="9" font-weight="700" fill="#dc2626">[No - Mismatch]</text>
+
+      <rect x="660" y="540" width="180" height="40" rx="8" fill="#fef2f2" stroke="#ef4444" stroke-width="1.8"/>
+      <text x="750" y="558" text-anchor="middle" font-size="10" font-weight="700" fill="#991b1b">Log Recognition Failure</text>
+      <text x="750" y="571" text-anchor="middle" font-size="8.5" fill="#b91c1c">Return HTTP 401 Unauthorized</text>
+
+      <!-- Pass Face: Check Geofence -->
+      <path d="M 950 530 L 950 580" stroke="#16a34a" stroke-width="2" marker-end="url(#act-arr)"/>
+      <text x="960" y="555" font-size="9" font-weight="700" fill="#16a34a">[Yes - Matched]</text>
+
+      <!-- Node 5: Compute Haversine Distance -->
+      <rect x="860" y="580" width="180" height="45" rx="8" fill="#ffffff" stroke="#2563eb" stroke-width="1.8" filter="url(#act-shadow)"/>
+      <text x="950" y="599" text-anchor="middle" font-size="10.5" font-weight="700" fill="#0f172a">Haversine Math Execution</text>
+      <text x="950" y="613" text-anchor="middle" font-size="9" fill="#64748b">Factory: (23.8103, 90.4125)</text>
+
+      <line x1="950" y1="625" x2="950" y2="655" stroke="#0f172a" stroke-width="2" marker-end="url(#act-arr)"/>
+
+      <!-- Decision 3: Distance <= 100m? -->
+      <polygon points="950,655 1000,680 950,705 900,680" fill="#fffbeb" stroke="#d97706" stroke-width="1.8"/>
+      <text x="950" y="684" text-anchor="middle" font-size="8.5" font-weight="700" fill="#92400e">Dist &lt;= 100m?</text>
+
+      <!-- Fail Geofence: Raise Fraud Flag -->
+      <path d="M 1000 680 L 1130 680" stroke="#dc2626" stroke-width="2" marker-end="url(#act-arr)"/>
+      <text x="1025" y="673" font-size="9" font-weight="700" fill="#dc2626">[No - Breach]</text>
+
+      <rect x="1130" y="660" width="180" height="45" rx="8" fill="#fff1f2" stroke="#e11d48" stroke-width="1.8" filter="url(#act-shadow)"/>
+      <text x="1220" y="679" text-anchor="middle" font-size="10" font-weight="700" fill="#881337">Insert into fraud_flags</text>
+      <text x="1220" y="693" text-anchor="middle" font-size="8.5" fill="#9f1239">flag_type: 'geofence' (Pending)</text>
+
+      <!-- Pass Geofence: Log Valid Attendance -->
+      <path d="M 950 705 L 950 760 L 1130 760" fill="none" stroke="#16a34a" stroke-width="2" marker-end="url(#act-arr)"/>
+      <text x="960" y="730" font-size="9" font-weight="700" fill="#16a34a">[Yes - Valid]</text>
+
+      <rect x="1130" y="740" width="180" height="45" rx="8" fill="#f0fdf4" stroke="#16a34a" stroke-width="1.8" filter="url(#act-shadow)"/>
+      <text x="1220" y="759" text-anchor="middle" font-size="10" font-weight="700" fill="#14532d">Insert into biometric_logs</text>
+      <text x="1220" y="773" text-anchor="middle" font-size="8.5" fill="#15803d">verified_by_face = TRUE</text>
+
+      <!-- Success Return to Kiosk UI -->
+      <path d="M 1220 785 L 1220 840 L 430 840" fill="none" stroke="#16a34a" stroke-width="2" marker-end="url(#act-arr)"/>
+
+      <rect x="340" y="820" width="180" height="45" rx="8" fill="#f0fdf4" stroke="#16a34a" stroke-width="1.8" filter="url(#act-shadow)"/>
+      <text x="430" y="839" text-anchor="middle" font-size="10.5" font-weight="700" fill="#14532d">Display Green Success Card</text>
+      <text x="430" y="853" text-anchor="middle" font-size="9" fill="#15803d">Chime Sound &amp; Return Home</text>
+
+      <!-- End Node -->
+      <path d="M 340 842 L 200 842" stroke="#0f172a" stroke-width="2" marker-end="url(#act-arr)"/>
+      <circle cx="170" cy="842" r="14" fill="#ffffff" stroke="#0f172a" stroke-width="2"/>
+      <circle cx="170" cy="842" r="8" fill="#0f172a"/>
+    </svg>
