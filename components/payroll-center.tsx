@@ -58,7 +58,7 @@ export default function PayrollCenter({ role, userId, userName }: PayrollProps) 
       setLoading(true);
       // Fetch payroll list
       let url = '/api/payroll';
-      if (role === 'Worker') {
+      if (role === 'Worker' && userId) {
         url = `/api/payroll?employee_id=${userId}`;
       }
       const res = await fetch(url);
@@ -73,7 +73,7 @@ export default function PayrollCenter({ role, userId, userName }: PayrollProps) 
 
   useEffect(() => {
     fetchPayroll();
-  }, [role]);
+  }, [role, userId]);
 
   const handleComputePayroll = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -184,13 +184,13 @@ export default function PayrollCenter({ role, userId, userName }: PayrollProps) 
                       <div className="text-[10px] text-muted-foreground mt-0.5">{record.employee_role}</div>
                     </TableCell>
                     <TableCell className="text-xs text-muted-foreground font-mono">
-                      {new Date(record.period_start).toLocaleDateString(undefined, { month: 'short', day: 'numeric' })} - {new Date(record.period_end).toLocaleDateString(undefined, { month: 'short', day: 'numeric', year: 'numeric' })}
+                      {new Date((record.period_start || '').split('T')[0] + 'T12:00:00').toLocaleDateString(undefined, { month: 'short', day: 'numeric' })} - {new Date((record.period_end || '').split('T')[0] + 'T12:00:00').toLocaleDateString(undefined, { month: 'short', day: 'numeric', year: 'numeric' })}
                     </TableCell>
                     <TableCell className="text-xs text-muted-foreground font-mono">
                       {record.regular_hours} hrs ({record.overtime_hours} OT)
                     </TableCell>
                     <TableCell className="text-xs font-bold text-foreground">
-                      ${record.net_pay.toFixed(2)}
+                      ${parseFloat(record.net_pay || 0).toFixed(2)}
                     </TableCell>
                     <TableCell className="text-right">
                       <Button 
@@ -230,7 +230,7 @@ export default function PayrollCenter({ role, userId, userName }: PayrollProps) 
                 </div>
                 <div className="text-right">
                   <span className="text-[10px] uppercase font-bold text-muted-foreground">Payslip Ledger</span>
-                  <p className="text-xs font-mono font-bold mt-1 text-foreground">#PAY-{selectedPayslip.id}-{new Date(selectedPayslip.period_start).getFullYear()}</p>
+                  <p className="text-xs font-mono font-bold mt-1 text-foreground">#PAY-{selectedPayslip.id}-{new Date((selectedPayslip.period_start || '').split('T')[0] + 'T12:00:00').getFullYear()}</p>
                 </div>
               </div>
 
@@ -251,7 +251,7 @@ export default function PayrollCenter({ role, userId, userName }: PayrollProps) 
                 <div>
                   <span className="text-[9px] uppercase font-bold text-muted-foreground">Pay Period</span>
                   <p className="text-muted-foreground font-mono mt-0.5">
-                    {new Date(selectedPayslip.period_start).toLocaleDateString()} - {new Date(selectedPayslip.period_end).toLocaleDateString()}
+                    {new Date((selectedPayslip.period_start || '').split('T')[0] + 'T12:00:00').toLocaleDateString()} - {new Date((selectedPayslip.period_end || '').split('T')[0] + 'T12:00:00').toLocaleDateString()}
                   </p>
                 </div>
               </div>

@@ -1,0 +1,140 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1200 680" width="100%" height="100%" style="background:#ffffff; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;">
+      
+      <defs>
+        <!-- Crow's Foot Markers & Connectors -->
+        <marker id="cf-many" viewBox="0 0 14 14" refX="13" refY="7" markerWidth="10" markerHeight="10" orient="auto">
+          <path d="M 0 1 L 13 7 L 0 13 M 13 1 L 13 13" fill="none" stroke="#475569" stroke-width="1.8" />
+        </marker>
+        <marker id="cf-one" viewBox="0 0 14 14" refX="1" refY="7" markerWidth="10" markerHeight="10" orient="auto">
+          <path d="M 4 1 L 4 13 M 9 1 L 9 13" fill="none" stroke="#475569" stroke-width="1.8" />
+        </marker>
+        <marker id="cf-zero-many" viewBox="0 0 18 14" refX="17" refY="7" markerWidth="12" markerHeight="10" orient="auto">
+          <circle cx="5" cy="7" r="3.5" fill="#ffffff" stroke="#475569" stroke-width="1.6" />
+          <path d="M 9 1 L 18 7 L 9 13 M 18 1 L 18 13" fill="none" stroke="#475569" stroke-width="1.8" />
+        </marker>
+        <marker id="cf-arrow" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
+          <path d="M 0 1 L 10 5 L 0 9 z" fill="#3b82f6" />
+        </marker>
+        <!-- Drop Shadows -->
+        <filter id="erd-shadow" x="-5%" y="-5%" width="115%" height="115%">
+          <feDropShadow dx="2" dy="3" stdDeviation="3.5" flood-opacity="0.10" />
+        </filter>
+        <filter id="badge-shadow" x="-10%" y="-10%" width="120%" height="120%">
+          <feDropShadow dx="1" dy="1" stdDeviation="1.5" flood-opacity="0.15" />
+        </filter>
+        <!-- Background Grid Pattern -->
+        <pattern id="erd-grid" width="40" height="40" patternUnits="userSpaceOnUse">
+          <path d="M 40 0 L 0 0 0 40" fill="none" stroke="#f1f5f9" stroke-width="1"/>
+        </pattern>
+      </defs>
+    
+      <rect width="1200" height="680" fill="url(#erd-grid)" />
+
+      <!-- HEADER -->
+      <rect x="30" y="20" width="1140" height="58" rx="8" fill="#86198f" filter="url(#erd-shadow)"/>
+      <text x="50" y="44" font-size="16" font-weight="800" fill="#ffffff">DOMAIN 5: PREDICTIVE STAFFING &amp; GENERATIVE AI RAG KNOWLEDGE BASE</text>
+      <text x="50" y="63" font-size="11" font-weight="500" fill="#f5d0fe">Time-Series Shift Headcount Forecasting, Policy Chunk Embeddings, and Conversational Telemetry</text>
+
+      <!-- CONNECTORS -->
+      <g fill="none" stroke="#a21caf" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+        <!-- departments -> staffing_forecasts (1:N) -->
+        <path d="M 330 190 L 440 190" marker-start="url(#cf-one)" marker-end="url(#cf-many)"/>
+        <!-- companies -> chatbot_knowledge_base (1:N) -->
+        <path d="M 200 270 L 200 420" marker-start="url(#cf-one)" marker-end="url(#cf-many)"/>
+        <!-- employees -> chatbot_conversations (1:N) -->
+        <path d="M 580 370 L 580 420" marker-start="url(#cf-one)" marker-end="url(#cf-zero-many)"/>
+      </g>
+
+      <!-- ENTITIES -->
+      <!-- 1. departments (Ref) -->
+      <g filter="url(#erd-shadow)" transform="translate(60, 110)">
+        <rect width="270" height="160" rx="8" fill="#ffffff" stroke="#1e293b" stroke-width="2"/>
+        <rect width="270" height="30" rx="8" fill="#1e293b"/>
+        <text x="12" y="20" font-size="12" font-weight="800" fill="#38bdf8">departments (Forecasting Unit)</text>
+        <g font-size="10" font-family="Consolas, monospace" fill="#0f172a">
+          <text x="12" y="52"><tspan fill="#b45309" font-weight="700">PK</tspan>  id : SERIAL NOT NULL</text>
+          <text x="12" y="74">    name : VARCHAR(255)</text>
+          <text x="12" y="96"><tspan fill="#2563eb" font-weight="700">FK</tspan>  company_id : INTEGER NOT NULL</text>
+        </g>
+        <line x1="0" y1="110" x2="270" y2="110" stroke="#f1f5f9"/>
+        <text x="12" y="128" font-size="8.5" fill="#64748b">Demand planning target department</text>
+      </g>
+
+      <!-- 2. staffing_forecasts -->
+      <g filter="url(#erd-shadow)" transform="translate(440, 110)">
+        <rect width="280" height="180" rx="8" fill="#ffffff" stroke="#86198f" stroke-width="2"/>
+        <rect width="280" height="30" rx="8" fill="#86198f"/>
+        <text x="12" y="20" font-size="12" font-weight="800" fill="#f0abfc">staffing_forecasts</text>
+        <text x="268" y="20" text-anchor="end" font-size="9" font-weight="700" fill="#f5d0fe">TIME-SERIES</text>
+        <g font-size="10" font-family="Consolas, monospace" fill="#0f172a">
+          <text x="12" y="52"><tspan fill="#b45309" font-weight="700">PK</tspan>  id : SERIAL NOT NULL</text>
+          <text x="12" y="72"><tspan fill="#2563eb" font-weight="700">FK</tspan>  department_id : INTEGER NOT NULL</text>
+          <text x="12" y="92">    shift_date : DATE NOT NULL</text>
+          <text x="12" y="112">    predicted_headcount : INTEGER</text>
+          <text x="12" y="132">    confidence_band : VARCHAR(50)</text>
+          <text x="12" y="152">    ai_briefing_text : TEXT</text>
+          <text x="12" y="170">    created_at : TIMESTAMPTZ DEFAULT NOW</text>
+        </g>
+      </g>
+
+      <!-- 3. chatbot_knowledge_base -->
+      <g filter="url(#erd-shadow)" transform="translate(60, 420)">
+        <rect width="270" height="180" rx="8" fill="#ffffff" stroke="#86198f" stroke-width="2"/>
+        <rect width="270" height="30" rx="8" fill="#86198f"/>
+        <text x="12" y="20" font-size="12" font-weight="800" fill="#f0abfc">chatbot_knowledge_base</text>
+        <text x="258" y="20" text-anchor="end" font-size="9" font-weight="700" fill="#f5d0fe">RAG VECTORS</text>
+        <g font-size="10" font-family="Consolas, monospace" fill="#0f172a">
+          <text x="12" y="52"><tspan fill="#b45309" font-weight="700">PK</tspan>  id : SERIAL NOT NULL</text>
+          <text x="12" y="72">    chunk_text : TEXT NOT NULL</text>
+          <text x="12" y="92">    source_doc : VARCHAR(255) NOT NULL</text>
+          <text x="12" y="112"><tspan fill="#2563eb" font-weight="700">FK</tspan>  company_id : INTEGER NOT NULL</text>
+          <text x="12" y="132">    updated_at : TIMESTAMPTZ DEFAULT NOW</text>
+        </g>
+        <line x1="0" y1="145" x2="270" y2="145" stroke="#f1f5f9"/>
+        <text x="12" y="162" font-size="8.5" fill="#a21caf">Factory compliance, safety &amp; leave policies</text>
+      </g>
+
+      <!-- 4. chatbot_conversations -->
+      <g filter="url(#erd-shadow)" transform="translate(440, 420)">
+        <rect width="280" height="180" rx="8" fill="#ffffff" stroke="#86198f" stroke-width="2"/>
+        <rect width="280" height="30" rx="8" fill="#86198f"/>
+        <text x="12" y="20" font-size="12" font-weight="800" fill="#f0abfc">chatbot_conversations</text>
+        <text x="268" y="20" text-anchor="end" font-size="9" font-weight="700" fill="#f5d0fe">INTERACTIONS</text>
+        <g font-size="10" font-family="Consolas, monospace" fill="#0f172a">
+          <text x="12" y="52"><tspan fill="#b45309" font-weight="700">PK</tspan>  id : SERIAL NOT NULL</text>
+          <text x="12" y="72"><tspan fill="#2563eb" font-weight="700">FK</tspan>  user_id : INTEGER (nullable)</text>
+          <text x="12" y="92">    message : TEXT NOT NULL</text>
+          <text x="12" y="112">    role : VARCHAR(50) [user/assistant]</text>
+          <text x="12" y="132">    timestamp : TIMESTAMPTZ DEFAULT NOW</text>
+        </g>
+        <line x1="0" y1="145" x2="280" y2="145" stroke="#f1f5f9"/>
+        <text x="12" y="162" font-size="8.5" fill="#a21caf">Audit logging for all Gemini LLM interactions</text>
+      </g>
+
+      <!-- AI SPECIFICATIONS & RAG PIPELINE -->
+      <g transform="translate(760, 110)">
+        <rect width="400" height="490" rx="8" fill="#f8fafc" stroke="#cbd5e1" stroke-width="1.5" />
+        <rect width="400" height="28" rx="8" fill="#e2e8f0" />
+        <text x="15" y="19" font-size="11" font-weight="800" fill="#86198f">PREDICTIVE &amp; GENERATIVE AI ARCHITECTURE</text>
+        <g font-size="9.5" fill="#334155" transform="translate(15, 45)">
+          <text x="0" y="0" font-weight="700" fill="#0f172a">1. Deterministic Time-Series Baseline:</text>
+          <text x="0" y="18">Headcount prediction calculates moving averages over</text>
+          <text x="0" y="34">historical completed shifts, day-of-week seasonality,</text>
+          <text x="0" y="50">and approved leave requests.</text>
+
+          <text x="0" y="80" font-weight="700" fill="#0f172a">2. Gemini Flash Generative Layer:</text>
+          <text x="0" y="98">The baseline numbers are fed into the Gemini LLM</text>
+          <text x="0" y="114">to generate human-readable operational briefings</text>
+          <text x="0" y="130">and proactive staffing shortage warnings.</text>
+
+          <text x="0" y="160" font-weight="700" fill="#0f172a">3. Policy Document RAG Corpus:</text>
+          <text x="0" y="178">`chunk_text` stores factory SOPs, overtime laws,</text>
+          <text x="0" y="194">and leave rules partitioned strictly by `company_id`.</text>
+          <text x="0" y="210">Workers query policies in natural language 24/7.</text>
+
+          <text x="0" y="240" font-weight="700" fill="#0f172a">4. Zero-Leakage Privacy Guardrails:</text>
+          <text x="0" y="258">Prompt templates sanitize personal PII.</text>
+          <text x="0" y="274">Workers cannot query other workers' salaries or flags.</text>
+        </g>
+      </g>
+    </svg>

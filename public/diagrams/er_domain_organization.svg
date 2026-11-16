@@ -1,0 +1,144 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1200 680" width="100%" height="100%" style="background:#ffffff; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;">
+      
+      <defs>
+        <!-- Crow's Foot Markers & Connectors -->
+        <marker id="cf-many" viewBox="0 0 14 14" refX="13" refY="7" markerWidth="10" markerHeight="10" orient="auto">
+          <path d="M 0 1 L 13 7 L 0 13 M 13 1 L 13 13" fill="none" stroke="#475569" stroke-width="1.8" />
+        </marker>
+        <marker id="cf-one" viewBox="0 0 14 14" refX="1" refY="7" markerWidth="10" markerHeight="10" orient="auto">
+          <path d="M 4 1 L 4 13 M 9 1 L 9 13" fill="none" stroke="#475569" stroke-width="1.8" />
+        </marker>
+        <marker id="cf-zero-many" viewBox="0 0 18 14" refX="17" refY="7" markerWidth="12" markerHeight="10" orient="auto">
+          <circle cx="5" cy="7" r="3.5" fill="#ffffff" stroke="#475569" stroke-width="1.6" />
+          <path d="M 9 1 L 18 7 L 9 13 M 18 1 L 18 13" fill="none" stroke="#475569" stroke-width="1.8" />
+        </marker>
+        <marker id="cf-arrow" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
+          <path d="M 0 1 L 10 5 L 0 9 z" fill="#3b82f6" />
+        </marker>
+        <!-- Drop Shadows -->
+        <filter id="erd-shadow" x="-5%" y="-5%" width="115%" height="115%">
+          <feDropShadow dx="2" dy="3" stdDeviation="3.5" flood-opacity="0.10" />
+        </filter>
+        <filter id="badge-shadow" x="-10%" y="-10%" width="120%" height="120%">
+          <feDropShadow dx="1" dy="1" stdDeviation="1.5" flood-opacity="0.15" />
+        </filter>
+        <!-- Background Grid Pattern -->
+        <pattern id="erd-grid" width="40" height="40" patternUnits="userSpaceOnUse">
+          <path d="M 40 0 L 0 0 0 40" fill="none" stroke="#f1f5f9" stroke-width="1"/>
+        </pattern>
+      </defs>
+    
+      <rect width="1200" height="680" fill="url(#erd-grid)" />
+
+      <!-- HEADER -->
+      <rect x="30" y="20" width="1140" height="58" rx="8" fill="#1e293b" filter="url(#erd-shadow)"/>
+      <text x="50" y="44" font-size="16" font-weight="800" fill="#ffffff">DOMAIN 1: MULTI-TENANCY, ORGANIZATIONAL HIERARCHY &amp; ACCESS CONTROL</text>
+      <text x="50" y="63" font-size="11" font-weight="500" fill="#94a3b8">Multi-Tenant Corporate Partitioning, Departmental Scopes, and Supervisor Override Permissions</text>
+
+      <!-- CONNECTORS -->
+      <g fill="none" stroke="#475569" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+        <!-- companies -> departments (1:N) -->
+        <path d="M 290 190 L 370 190" marker-start="url(#cf-one)" marker-end="url(#cf-many)"/>
+        <!-- companies -> employees (1:N) -->
+        <path d="M 180 270 L 180 340 L 510 340 L 510 280 L 710 280 L 710 220 L 730 220" marker-start="url(#cf-one)" marker-end="url(#cf-many)"/>
+        <!-- departments -> employees (1:N) -->
+        <path d="M 640 190 L 730 190" marker-start="url(#cf-one)" marker-end="url(#cf-many)"/>
+        <!-- employees -> manager_worker_access (1:N manager_id) -->
+        <path d="M 1030 170 L 1090 170 L 1090 400 L 980 400" marker-start="url(#cf-one)" marker-end="url(#cf-many)"/>
+        <!-- employees -> manager_worker_access (1:N worker_id) -->
+        <path d="M 1030 210 L 1070 210 L 1070 440 L 980 440" stroke="#0284c7" marker-start="url(#cf-one)" marker-end="url(#cf-many)"/>
+        <!-- departments manager_id -> employees id -->
+        <path d="M 505 270 L 505 300 L 780 300 L 780 260" stroke="#0284c7" stroke-dasharray="3 3" marker-end="url(#cf-arrow)"/>
+      </g>
+
+      <!-- ENTITIES -->
+      <!-- 1. companies -->
+      <g filter="url(#erd-shadow)" transform="translate(40, 110)">
+        <rect width="250" height="160" rx="8" fill="#ffffff" stroke="#1e293b" stroke-width="2"/>
+        <rect width="250" height="30" rx="8" fill="#1e293b"/>
+        <text x="12" y="20" font-size="12" font-weight="800" fill="#38bdf8">companies</text>
+        <text x="238" y="20" text-anchor="end" font-size="9" font-weight="700" fill="#94a3b8">TENANT ROOT</text>
+        <g font-size="10" font-family="Consolas, monospace" fill="#0f172a">
+          <text x="12" y="52"><tspan fill="#b45309" font-weight="700">PK</tspan>  id : SERIAL NOT NULL</text>
+          <text x="12" y="74"><tspan fill="#0284c7" font-weight="700">UQ</tspan>  name : VARCHAR(255) NOT NULL</text>
+          <text x="12" y="96">    created_at : TIMESTAMPTZ DEFAULT NOW</text>
+        </g>
+        <line x1="0" y1="110" x2="250" y2="110" stroke="#f1f5f9"/>
+        <text x="12" y="128" font-size="9" fill="#475569" font-weight="600">Row-Level Tenant Isolation Barrier</text>
+        <text x="12" y="145" font-size="8.5" fill="#64748b">Cascades deletes to all org entities</text>
+      </g>
+
+      <!-- 2. departments -->
+      <g filter="url(#erd-shadow)" transform="translate(370, 110)">
+        <rect width="270" height="160" rx="8" fill="#ffffff" stroke="#1e293b" stroke-width="2"/>
+        <rect width="270" height="30" rx="8" fill="#1e293b"/>
+        <text x="12" y="20" font-size="12" font-weight="800" fill="#38bdf8">departments</text>
+        <text x="258" y="20" text-anchor="end" font-size="9" font-weight="700" fill="#94a3b8">FUNCTIONAL UNIT</text>
+        <g font-size="10" font-family="Consolas, monospace" fill="#0f172a">
+          <text x="12" y="52"><tspan fill="#b45309" font-weight="700">PK</tspan>  id : SERIAL NOT NULL</text>
+          <text x="12" y="72">    name : VARCHAR(255) NOT NULL</text>
+          <text x="12" y="92"><tspan fill="#2563eb" font-weight="700">FK</tspan>  manager_id : INTEGER (nullable)</text>
+          <text x="12" y="112"><tspan fill="#2563eb" font-weight="700">FK</tspan>  company_id : INTEGER NOT NULL</text>
+          <text x="12" y="132">    created_at : TIMESTAMPTZ DEFAULT NOW</text>
+        </g>
+        <line x1="0" y1="140" x2="270" y2="140" stroke="#f1f5f9"/>
+        <text x="12" y="152" font-size="8.5" fill="#0369a1" font-weight="600">CONSTRAINT: UNIQUE(name, company_id)</text>
+      </g>
+
+      <!-- 3. employees -->
+      <g filter="url(#erd-shadow)" transform="translate(730, 95)">
+        <rect width="300" height="210" rx="8" fill="#ffffff" stroke="#1d4ed8" stroke-width="2.2"/>
+        <rect width="300" height="32" rx="8" fill="#1e40af"/>
+        <text x="14" y="21" font-size="13" font-weight="800" fill="#ffffff">employees</text>
+        <text x="286" y="21" text-anchor="end" font-size="9" font-weight="800" fill="#93c5fd">PRINCIPAL IDENTITY</text>
+        <g font-size="10" font-family="Consolas, monospace" fill="#0f172a">
+          <text x="14" y="54"><tspan fill="#b45309" font-weight="700">PK</tspan>  id : SERIAL NOT NULL</text>
+          <text x="14" y="72">    name : VARCHAR(255) NOT NULL</text>
+          <text x="14" y="90"><tspan fill="#0284c7" font-weight="700">UQ</tspan>  email : VARCHAR(255) NOT NULL</text>
+          <text x="14" y="108">    password : VARCHAR(255) [bcrypt]</text>
+          <text x="14" y="126">    role : VARCHAR(50) NOT NULL</text>
+          <text x="14" y="144"><tspan fill="#2563eb" font-weight="700">FK</tspan>  department_id : INTEGER (nullable)</text>
+          <text x="14" y="162"><tspan fill="#2563eb" font-weight="700">FK</tspan>  company_id : INTEGER NOT NULL</text>
+          <text x="14" y="180">    status : VARCHAR(50) DEFAULT 'Active'</text>
+          <text x="14" y="198">    created_at : TIMESTAMPTZ DEFAULT NOW</text>
+        </g>
+      </g>
+
+      <!-- 4. manager_worker_access -->
+      <g filter="url(#erd-shadow)" transform="translate(710, 350)">
+        <rect width="270" height="150" rx="8" fill="#ffffff" stroke="#1e40af" stroke-width="2"/>
+        <rect width="270" height="30" rx="8" fill="#1e40af"/>
+        <text x="12" y="20" font-size="12" font-weight="800" fill="#ffffff">manager_worker_access</text>
+        <text x="258" y="20" text-anchor="end" font-size="9" font-weight="700" fill="#93c5fd">RBAC OVERRIDE</text>
+        <g font-size="10" font-family="Consolas, monospace" fill="#0f172a">
+          <text x="12" y="52"><tspan fill="#b45309" font-weight="700">PK</tspan>  id : SERIAL NOT NULL</text>
+          <text x="12" y="74"><tspan fill="#2563eb" font-weight="700">FK</tspan>  manager_id : INTEGER NOT NULL</text>
+          <text x="12" y="96"><tspan fill="#2563eb" font-weight="700">FK</tspan>  worker_id : INTEGER NOT NULL</text>
+        </g>
+        <line x1="0" y1="110" x2="270" y2="110" stroke="#f1f5f9"/>
+        <text x="12" y="128" font-size="8.5" fill="#1e40af" font-weight="600">CONSTRAINT: UNIQUE(manager_id, worker_id)</text>
+        <text x="12" y="142" font-size="8" fill="#64748b">Cross-department supervision grant</text>
+      </g>
+
+      <!-- ARCHITECTURAL CALLOUT BOX -->
+      <g transform="translate(40, 350)">
+        <rect width="600" height="280" rx="8" fill="#f8fafc" stroke="#cbd5e1" stroke-width="1.5" />
+        <rect width="600" height="28" rx="8" fill="#e2e8f0" />
+        <text x="15" y="19" font-size="11" font-weight="800" fill="#1e293b">RELATIONAL ARCHITECTURE &amp; RBAC INTEGRITY PRINCIPLES</text>
+        <g font-size="9.5" fill="#334155" transform="translate(15, 45)">
+          <text x="0" y="0" font-weight="700" fill="#0f172a">1. Multi-Tenant Cascade Isolation:</text>
+          <text x="0" y="16">All operational data cascades from `companies.id`. Purging a tenant cleanly purges all child records.</text>
+          
+          <text x="0" y="44" font-weight="700" fill="#0f172a">2. Role-Based Constraint Hierarchy (RBAC):</text>
+          <text x="0" y="60">`HR Admin`: Unrestricted system access across all departments, payroll ledgers, and forensic queues.</text>
+          <text x="0" y="76">`Floor Manager`: Scoped to assigned workers in department OR via `manager_worker_access` whitelist.</text>
+          <text x="0" y="92">`Worker`: Scoped exclusively to personal record IDs (`employee_id = session.user.id`).</text>
+
+          <text x="0" y="120" font-weight="700" fill="#0f172a">3. Circular Relationship Resolution:</text>
+          <text x="0" y="136">`departments.manager_id` references `employees.id` with `ON DELETE SET NULL`, eliminating deadlock during employee termination.</text>
+
+          <text x="0" y="164" font-weight="700" fill="#0f172a">4. Password Security Standard:</text>
+          <text x="0" y="180">Bcrypt with salt work factor 10, preventing plain-text password leakage in forensic system logs.</text>
+        </g>
+      </g>
+    </svg>

@@ -72,6 +72,11 @@ export async function POST(request: Request) {
       return NextResponse.json({ success: false, error: 'Unauthorized' }, { status: 401 });
     }
 
+    const sessionRole = (session.user as any).role;
+    if (sessionRole !== 'HR Admin') {
+      return NextResponse.json({ success: false, error: 'Access denied: Only HR Admins can compute company payroll.' }, { status: 403 });
+    }
+
     const companyId = (session.user as any).company_id;
     const body = await request.json();
     const { period_start, period_end } = body;
@@ -135,7 +140,18 @@ export async function POST(request: Request) {
         }
       }
 
-      // If they had no logs but had shifts, we can default to 0 hours
+      // If no check-in/out pairing was found, check if they had shifts marked 'Completed' in this period
+      if (regularHoursTotal === 0 && overtimeHoursTotal === 0) {
+        const completedShifts = await db.query(
+          `SELECT COUNT(*) as count FROM shifts WHERE employee_id = $1 AND status = 'Completed' AND date >= $2 AND date <= $3`,
+          [emp.id, period_start, period_end]
+        );
+        const shiftCount = parseInt(completedShifts.rows[0]?.count || '0', 10);
+        if (shiftCount > 0) {
+          regularHoursTotal = shiftCount * 8;
+        }
+      }
+
       // Determine hourly rate
       const rate = ROLE_HOURLY_RATES[emp.role] || 15;
       

@@ -58,6 +58,14 @@ export async function POST(request: Request) {
       return NextResponse.json({ success: false, error: 'Unauthorized' }, { status: 401 });
     }
 
+    const role = (session.user as any).role;
+    if (role !== 'HR Admin' && role !== 'Floor Manager') {
+      return NextResponse.json(
+        { success: false, error: 'Unauthorized: only HR Admin and Floor Managers can generate forecasts.' },
+        { status: 403 }
+      );
+    }
+
     const companyId = (session.user as any).company_id;
     const body = await request.json();
     const { date } = body;

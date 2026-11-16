@@ -138,6 +138,51 @@ function LoginForm() {
         </div>
       </div>
 
+      {/* Quick Demo Credentials */}
+      <div className="space-y-1.5 pt-1">
+        <span className="text-[10px] font-bold uppercase tracking-wider text-muted-foreground/80 font-mono">
+          Quick Demo Login
+        </span>
+        <div className="grid grid-cols-3 gap-1.5">
+          <Button
+            type="button"
+            variant="outline"
+            size="sm"
+            onClick={() => {
+              setEmail('admin@industrialintel.com');
+              setPassword('Admin123@');
+            }}
+            className="text-[10px] h-7 px-1.5 font-semibold bg-secondary/30 hover:bg-primary/10 hover:text-primary border-border/80"
+          >
+            👑 HR Admin
+          </Button>
+          <Button
+            type="button"
+            variant="outline"
+            size="sm"
+            onClick={() => {
+              setEmail('manager@industrialintel.com');
+              setPassword('Manager123@');
+            }}
+            className="text-[10px] h-7 px-1.5 font-semibold bg-secondary/30 hover:bg-primary/10 hover:text-primary border-border/80"
+          >
+            👔 Manager
+          </Button>
+          <Button
+            type="button"
+            variant="outline"
+            size="sm"
+            onClick={() => {
+              setEmail('worker@industrialintel.com');
+              setPassword('Worker123@');
+            }}
+            className="text-[10px] h-7 px-1.5 font-semibold bg-secondary/30 hover:bg-primary/10 hover:text-primary border-border/80"
+          >
+            👷 Worker
+          </Button>
+        </div>
+      </div>
+
       {/* Submit Button */}
       <Button
         type="submit"

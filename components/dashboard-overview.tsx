@@ -63,7 +63,10 @@ export default function DashboardOverview({ role }: OverviewProps) {
       const todayStr = new Date().toISOString().split('T')[0];
 
       // Calculate totalScheduled for today (Scheduled or Completed status)
-      const todayScheduled = allShifts.filter((s: any) => s.date.split('T')[0] === todayStr && (s.status === 'Scheduled' || s.status === 'Completed')).length;
+      const todayScheduled = allShifts.filter((s: any) => {
+        const sDate = typeof s.date === 'string' ? s.date.split('T')[0] : (s.date ? new Date(s.date).toISOString().split('T')[0] : '');
+        return sDate === todayStr && (s.status === 'Scheduled' || s.status === 'Completed');
+      }).length;
 
       // Fetch tomorrow's forecast
       const tomorrow = new Date(Date.now() + 24 * 60 * 60 * 1000).toISOString().split('T')[0];
@@ -102,7 +105,10 @@ export default function DashboardOverview({ role }: OverviewProps) {
         const dateStr = date.toISOString().split('T')[0];
         const dayLabel = dayNames[date.getDay()];
         
-        const dayShifts = allShifts.filter((s: any) => s.date.split('T')[0] === dateStr);
+        const dayShifts = allShifts.filter((s: any) => {
+          const sDate = typeof s.date === 'string' ? s.date.split('T')[0] : (s.date ? new Date(s.date).toISOString().split('T')[0] : '');
+          return sDate === dateStr;
+        });
         const scheduled = dayShifts.filter((s: any) => s.status === 'Scheduled' || s.status === 'Completed').length;
         const attended = dayShifts.filter((s: any) => s.status === 'Completed').length;
         
@@ -122,8 +128,9 @@ export default function DashboardOverview({ role }: OverviewProps) {
       const periodMap: Record<string, { name: string; GrossPay: number; OvertimePay: number }> = {};
       
       payrollList.forEach((p: any) => {
-        const dateObj = new Date(p.period_start);
-        const monthName = dateObj.toLocaleDateString('en-US', { month: 'short' });
+        const dateStr = String(p.period_start || '');
+        const dateObj = new Date(dateStr.includes('T') ? dateStr : `${dateStr}T12:00:00`);
+        const monthName = isNaN(dateObj.getTime()) ? 'Cycle' : dateObj.toLocaleDateString('en-US', { month: 'short' });
         const label = `${monthName} Cycle`;
         
         if (!periodMap[label]) {

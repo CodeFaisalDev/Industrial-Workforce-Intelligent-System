@@ -41,7 +41,7 @@ export default function FraudQueue() {
       const res = await fetch('/api/fraud', {
         method: 'PUT',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ flag_id: flagId, status, resolved_by: 1 }), // Resolved by KA (HR)
+        body: JSON.stringify({ flag_id: flagId, status }),
       });
       const data = await res.json();
       if (data.success) {

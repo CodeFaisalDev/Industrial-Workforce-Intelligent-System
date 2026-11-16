@@ -1,0 +1,144 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1200 680" width="100%" height="100%" style="background:#ffffff; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;">
+      
+      <defs>
+        <!-- Crow's Foot Markers & Connectors -->
+        <marker id="cf-many" viewBox="0 0 14 14" refX="13" refY="7" markerWidth="10" markerHeight="10" orient="auto">
+          <path d="M 0 1 L 13 7 L 0 13 M 13 1 L 13 13" fill="none" stroke="#475569" stroke-width="1.8" />
+        </marker>
+        <marker id="cf-one" viewBox="0 0 14 14" refX="1" refY="7" markerWidth="10" markerHeight="10" orient="auto">
+          <path d="M 4 1 L 4 13 M 9 1 L 9 13" fill="none" stroke="#475569" stroke-width="1.8" />
+        </marker>
+        <marker id="cf-zero-many" viewBox="0 0 18 14" refX="17" refY="7" markerWidth="12" markerHeight="10" orient="auto">
+          <circle cx="5" cy="7" r="3.5" fill="#ffffff" stroke="#475569" stroke-width="1.6" />
+          <path d="M 9 1 L 18 7 L 9 13 M 18 1 L 18 13" fill="none" stroke="#475569" stroke-width="1.8" />
+        </marker>
+        <marker id="cf-arrow" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
+          <path d="M 0 1 L 10 5 L 0 9 z" fill="#3b82f6" />
+        </marker>
+        <!-- Drop Shadows -->
+        <filter id="erd-shadow" x="-5%" y="-5%" width="115%" height="115%">
+          <feDropShadow dx="2" dy="3" stdDeviation="3.5" flood-opacity="0.10" />
+        </filter>
+        <filter id="badge-shadow" x="-10%" y="-10%" width="120%" height="120%">
+          <feDropShadow dx="1" dy="1" stdDeviation="1.5" flood-opacity="0.15" />
+        </filter>
+        <!-- Background Grid Pattern -->
+        <pattern id="erd-grid" width="40" height="40" patternUnits="userSpaceOnUse">
+          <path d="M 40 0 L 0 0 0 40" fill="none" stroke="#f1f5f9" stroke-width="1"/>
+        </pattern>
+      </defs>
+    
+      <rect width="1200" height="680" fill="url(#erd-grid)" />
+
+      <!-- HEADER -->
+      <rect x="30" y="20" width="1140" height="58" rx="8" fill="#5b21b6" filter="url(#erd-shadow)"/>
+      <text x="50" y="44" font-size="16" font-weight="800" fill="#ffffff">DOMAIN 3: WORKFORCE OPERATIONS, SHIFT SCHEDULING &amp; LEAVE GOVERNANCE</text>
+      <text x="50" y="63" font-size="11" font-weight="500" fill="#ddd6fe">Shift Rostering, Peer Shift Swapping State Machine, and Leave Quota Lifecycle Management</text>
+
+      <!-- CONNECTORS -->
+      <g fill="none" stroke="#7c3aed" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+        <!-- employees -> shifts (1:N) -->
+        <path d="M 330 190 L 440 190" marker-start="url(#cf-one)" marker-end="url(#cf-many)"/>
+        <!-- shifts -> shift_swaps (1:N) -->
+        <path d="M 580 300 L 580 400" marker-start="url(#cf-one)" marker-end="url(#cf-many)"/>
+        <!-- employees -> leave_requests (1:N) -->
+        <path d="M 200 270 L 200 400" marker-start="url(#cf-one)" marker-end="url(#cf-many)"/>
+      </g>
+
+      <!-- ENTITIES -->
+      <!-- 1. employees -->
+      <g filter="url(#erd-shadow)" transform="translate(60, 110)">
+        <rect width="270" height="160" rx="8" fill="#ffffff" stroke="#1d4ed8" stroke-width="2"/>
+        <rect width="270" height="30" rx="8" fill="#1e40af"/>
+        <text x="12" y="20" font-size="12" font-weight="800" fill="#ffffff">employees (Worker Roster)</text>
+        <g font-size="10" font-family="Consolas, monospace" fill="#0f172a">
+          <text x="12" y="52"><tspan fill="#b45309" font-weight="700">PK</tspan>  id : SERIAL NOT NULL</text>
+          <text x="12" y="74">    name : VARCHAR(255)</text>
+          <text x="12" y="96"><tspan fill="#2563eb" font-weight="700">FK</tspan>  department_id : INTEGER</text>
+          <text x="12" y="118">    status : VARCHAR(50)</text>
+        </g>
+        <line x1="0" y1="130" x2="270" y2="130" stroke="#f1f5f9"/>
+        <text x="12" y="146" font-size="8.5" fill="#64748b">Assignable operational resource</text>
+      </g>
+
+      <!-- 2. shifts -->
+      <g filter="url(#erd-shadow)" transform="translate(440, 110)">
+        <rect width="280" height="190" rx="8" fill="#ffffff" stroke="#5b21b6" stroke-width="2"/>
+        <rect width="280" height="30" rx="8" fill="#5b21b6"/>
+        <text x="12" y="20" font-size="12" font-weight="800" fill="#c4b5fd">shifts</text>
+        <text x="268" y="20" text-anchor="end" font-size="9" font-weight="700" fill="#ddd6fe">WEEKLY ROSTER</text>
+        <g font-size="10" font-family="Consolas, monospace" fill="#0f172a">
+          <text x="12" y="52"><tspan fill="#b45309" font-weight="700">PK</tspan>  id : SERIAL NOT NULL</text>
+          <text x="12" y="72"><tspan fill="#2563eb" font-weight="700">FK</tspan>  employee_id : INTEGER NOT NULL</text>
+          <text x="12" y="92">    date : DATE NOT NULL</text>
+          <text x="12" y="112">    start_time : TIME NOT NULL</text>
+          <text x="12" y="132">    end_time : TIME NOT NULL</text>
+          <text x="12" y="152">    status : VARCHAR(50) DEFAULT 'Scheduled'</text>
+          <text x="12" y="172">    created_at : TIMESTAMPTZ DEFAULT NOW</text>
+        </g>
+      </g>
+
+      <!-- 3. shift_swaps -->
+      <g filter="url(#erd-shadow)" transform="translate(440, 400)">
+        <rect width="280" height="200" rx="8" fill="#ffffff" stroke="#5b21b6" stroke-width="2"/>
+        <rect width="280" height="30" rx="8" fill="#5b21b6"/>
+        <text x="12" y="20" font-size="12" font-weight="800" fill="#c4b5fd">shift_swaps</text>
+        <text x="268" y="20" text-anchor="end" font-size="9" font-weight="700" fill="#ddd6fe">MUTUAL TRADE</text>
+        <g font-size="10" font-family="Consolas, monospace" fill="#0f172a">
+          <text x="12" y="52"><tspan fill="#b45309" font-weight="700">PK</tspan>  id : SERIAL NOT NULL</text>
+          <text x="12" y="72"><tspan fill="#2563eb" font-weight="700">FK</tspan>  employee_id : INTEGER NOT NULL</text>
+          <text x="12" y="92">    employee_name : VARCHAR(255)</text>
+          <text x="12" y="112">    date : VARCHAR(100) NOT NULL</text>
+          <text x="12" y="132">    shift : VARCHAR(100) NOT NULL</text>
+          <text x="12" y="152">    reason : TEXT NOT NULL</text>
+          <text x="12" y="172">    status : VARCHAR(50) DEFAULT 'Pending'</text>
+          <text x="12" y="190">    created_at : TIMESTAMPTZ DEFAULT NOW</text>
+        </g>
+      </g>
+
+      <!-- 4. leave_requests -->
+      <g filter="url(#erd-shadow)" transform="translate(60, 400)">
+        <rect width="270" height="200" rx="8" fill="#ffffff" stroke="#5b21b6" stroke-width="2"/>
+        <rect width="270" height="30" rx="8" fill="#5b21b6"/>
+        <text x="12" y="20" font-size="12" font-weight="800" fill="#c4b5fd">leave_requests</text>
+        <text x="258" y="20" text-anchor="end" font-size="9" font-weight="700" fill="#ddd6fe">ABSENCE REQUESTS</text>
+        <g font-size="10" font-family="Consolas, monospace" fill="#0f172a">
+          <text x="12" y="52"><tspan fill="#b45309" font-weight="700">PK</tspan>  id : SERIAL NOT NULL</text>
+          <text x="12" y="72"><tspan fill="#2563eb" font-weight="700">FK</tspan>  employee_id : INTEGER NOT NULL</text>
+          <text x="12" y="92">    leave_type : VARCHAR(50) NOT NULL</text>
+          <text x="12" y="112">    start_date : DATE NOT NULL</text>
+          <text x="12" y="132">    end_date : DATE NOT NULL</text>
+          <text x="12" y="152">    reason : TEXT NOT NULL</text>
+          <text x="12" y="172">    status : VARCHAR(50) DEFAULT 'Pending'</text>
+          <text x="12" y="190">    created_at : TIMESTAMPTZ DEFAULT NOW</text>
+        </g>
+      </g>
+
+      <!-- OPERATIONAL STATE TRANSITIONS & SPECIFICATIONS -->
+      <g transform="translate(770, 110)">
+        <rect width="390" height="490" rx="8" fill="#f8fafc" stroke="#cbd5e1" stroke-width="1.5" />
+        <rect width="390" height="28" rx="8" fill="#e2e8f0" />
+        <text x="15" y="19" font-size="11" font-weight="800" fill="#5b21b6">OPERATIONAL STATE MACHINES &amp; POLICIES</text>
+        <g font-size="9.5" fill="#334155" transform="translate(15, 45)">
+          <text x="0" y="0" font-weight="700" fill="#0f172a">1. Shift State Lifecycle:</text>
+          <text x="0" y="18">`Scheduled` ➔ `Completed` (verified Check-In &amp; Out)</text>
+          <text x="0" y="34">`Scheduled` ➔ `Absent` (no punch record logged)</text>
+          <text x="0" y="50">`Scheduled` ➔ `Standby` (coverage replacement)</text>
+
+          <text x="0" y="80" font-weight="700" fill="#0f172a">2. Standard Factory Working Shifts:</text>
+          <text x="0" y="98">Morning: 06:00 - 14:00 (Assembly &amp; Packaging)</text>
+          <text x="0" y="114">Afternoon: 14:00 - 22:00 (Production &amp; QA)</text>
+          <text x="0" y="130">Night: 22:00 - 06:00 (Maintenance &amp; Sanitation)</text>
+
+          <text x="0" y="160" font-weight="700" fill="#0f172a">3. Leave Entitlement Quotas:</text>
+          <text x="0" y="178">Casual Leave: 4 days / year (requested 3d in advance)</text>
+          <text x="0" y="194">Sick Leave: 7 days / year (requires medical cert if &gt; 2d)</text>
+          <text x="0" y="210">Earned Leave: 12 days / year (requires manager approval)</text>
+
+          <text x="0" y="240" font-weight="700" fill="#0f172a">4. Manager Approval Workflow:</text>
+          <text x="0" y="258">Floor Managers triage `Pending` leaves &amp; shift swaps.</text>
+          <text x="0" y="274">Approving decrements the available quota ledger</text>
+          <text x="0" y="290">and recalculates staffing predictions dynamically.</text>
+        </g>
+      </g>
+    </svg>

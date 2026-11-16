@@ -254,7 +254,7 @@ export default function ShiftScheduler({ role, userId, userName }: SchedulerProp
                 shifts.map((shift) => (
                   <TableRow key={shift.id} className="hover:bg-secondary/20">
                     <TableCell className="text-xs font-mono font-semibold py-3.5">
-                      {new Date(shift.date).toLocaleDateString(undefined, { weekday: 'short', month: 'short', day: 'numeric' })}
+                      {new Date((shift.date || '').split('T')[0] + 'T12:00:00').toLocaleDateString(undefined, { weekday: 'short', month: 'short', day: 'numeric' })}
                     </TableCell>
                     <TableCell className="text-xs font-bold text-foreground">
                       {shift.employee_name}
@@ -272,11 +272,14 @@ export default function ShiftScheduler({ role, userId, userName }: SchedulerProp
                     </TableCell>
                     <TableCell className="text-right">
                       {/* Worker shift swap request button */}
-                      {role === 'Worker' && shift.employee_name === session?.user?.name && shift.status === 'Scheduled' && (
+                      {role === 'Worker' && (shift.employee_id === parseInt(userId || '') || shift.employee_name === session?.user?.name) && shift.status === 'Scheduled' && (
                         <Button 
                           variant="ghost" 
                           size="sm" 
-                          onClick={() => handleRequestSwap(new Date(shift.date).toLocaleDateString(), shift.start_time)}
+                          onClick={() => {
+                            const dateStr = typeof shift.date === 'string' ? shift.date.split('T')[0] : new Date(shift.date).toISOString().split('T')[0];
+                            handleRequestSwap(dateStr, shift.start_time);
+                          }}
                           className="text-[10px] font-bold h-7 px-2 hover:bg-primary/10 hover:text-primary rounded-md"
                         >
                           Request Swap

@@ -48,7 +48,7 @@ export default function ChatbotDrawer({ role }: ChatbotDrawerProps) {
         setMessages(data.history);
       } else {
         // Welcome message if no history
-        const name = role === 'HR Admin' ? 'Prithula' : role === 'Floor Manager' ? 'Nazmul' : 'Faria';
+        const name = session?.user?.name || (role === 'HR Admin' ? 'Prithula' : role === 'Floor Manager' ? 'Nazmul' : 'Faria');
         setMessages([
           {
             role: 'assistant',
@@ -62,8 +62,10 @@ export default function ChatbotDrawer({ role }: ChatbotDrawerProps) {
   };
 
   useEffect(() => {
-    loadHistory();
-  }, [role]);
+    if (activeUserId) {
+      loadHistory();
+    }
+  }, [activeUserId, role]);
 
   // Scroll to bottom on new messages
   useEffect(() => {

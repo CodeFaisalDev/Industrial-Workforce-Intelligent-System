@@ -38,18 +38,43 @@ export async function GET(request: Request) {
     }
 
     const companyId = (session.user as any).company_id;
+    const sessionRole = (session.user as any).role;
+    const sessionUserId = parseInt((session.user as any).id, 10);
+
     const { searchParams } = new URL(request.url);
     const period = searchParams.get('period') || new Date().toISOString().slice(0, 7); // Default to current 'YYYY-MM'
+    const targetEmpId = searchParams.get('employee_id');
 
-    const query = `
+    let query = `
       SELECT p.*, e.name as employee_name, e.role as employee_role, d.name as department_name
       FROM performance_scores p
       JOIN employees e ON p.employee_id = e.id
       LEFT JOIN departments d ON e.department_id = d.id
       WHERE p.period = $1 AND e.company_id = $2
-      ORDER BY p.composite_score DESC, e.name ASC
     `;
-    const result = await db.query(query, [period, companyId]);
+    const params: any[] = [period, companyId];
+
+    if (sessionRole === 'Worker') {
+      query += ` AND p.employee_id = $3`;
+      params.push(sessionUserId);
+    } else if (sessionRole === 'Floor Manager') {
+      query += ` AND (p.employee_id = $3 OR p.employee_id IN (SELECT worker_id FROM manager_worker_access WHERE manager_id = $3))`;
+      params.push(sessionUserId);
+      if (targetEmpId) {
+        query += ` AND p.employee_id = $4`;
+        params.push(parseInt(targetEmpId, 10));
+      }
+    } else {
+      // HR Admin
+      if (targetEmpId) {
+        query += ` AND p.employee_id = $3`;
+        params.push(parseInt(targetEmpId, 10));
+      }
+    }
+
+    query += ` ORDER BY p.composite_score DESC, e.name ASC`;
+
+    const result = await db.query(query, params);
     return NextResponse.json({ success: true, scores: result.rows });
   } catch (error: any) {
     console.error('Failed to get performance scores:', error);
@@ -62,6 +87,14 @@ export async function POST(request: Request) {
     const session = await getServerSession(authOptions);
     if (!session) {
       return NextResponse.json({ success: false, error: 'Unauthorized' }, { status: 401 });
+    }
+
+    const sessionRole = (session.user as any).role;
+    if (sessionRole !== 'HR Admin' && sessionRole !== 'Floor Manager') {
+      return NextResponse.json(
+        { success: false, error: 'Access denied: Only HR Admins and Floor Managers can recalculate performance scores.' },
+        { status: 403 }
+      );
     }
 
     const companyId = (session.user as any).company_id;

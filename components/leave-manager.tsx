@@ -253,7 +253,7 @@ export default function LeaveManager({ role, userId, userName }: LeaveManagerPro
                       </Badge>
                     </TableCell>
                     <TableCell className="text-xs font-mono text-muted-foreground">
-                      {new Date(leave.start_date).toLocaleDateString(undefined, { month: 'short', day: 'numeric' })} - {new Date(leave.end_date).toLocaleDateString(undefined, { month: 'short', day: 'numeric' })}
+                      {new Date((leave.start_date || '').split('T')[0] + 'T12:00:00').toLocaleDateString(undefined, { month: 'short', day: 'numeric' })} - {new Date((leave.end_date || '').split('T')[0] + 'T12:00:00').toLocaleDateString(undefined, { month: 'short', day: 'numeric' })}
                     </TableCell>
                     <TableCell className="text-xs text-muted-foreground max-w-[200px] truncate">
                       {leave.reason}

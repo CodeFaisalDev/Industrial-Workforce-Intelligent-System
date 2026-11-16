@@ -45,7 +45,7 @@ export async function GET(request: Request) {
 
     if (role === 'Floor Manager') {
       query += `
-        AND e.id IN (SELECT worker_id FROM manager_worker_access WHERE manager_id = $2)
+        AND (e.id IN (SELECT worker_id FROM manager_worker_access WHERE manager_id = $2) OR e.id = $2)
       `;
       params.push(userId);
       if (employeeId) {
@@ -147,7 +147,7 @@ export async function POST(request: Request) {
         const faceDistance = parseFloat(matchRes.rows[0].distance);
         console.log(`Face match distance: ${faceDistance}`);
 
-        if (faceDistance > 0.05) {
+        if (faceDistance > 0.15) {
           const confidence = Math.max(0, parseFloat((1 - (faceDistance * 2)).toFixed(4)));
           
           // Log failed attempt
@@ -218,7 +218,8 @@ export async function POST(request: Request) {
 
     // 4. If geofence is violated, immediately raise a fraud flag in real-time
     if (isGeofenceViolation) {
-      const details = `Check-in recorded ${Math.round(distance)}m away from factory geofence boundary. Coordinates: (${gps_lat}, ${gps_lng})`;
+      const typeLabel = log_type === 'Check_Out' ? 'Check-out' : 'Check-in';
+      const details = `${typeLabel} recorded ${Math.round(distance)}m away from factory geofence boundary. Coordinates: (${gps_lat}, ${gps_lng})`;
       
       // Prevent duplicate flags for identical coordinate violations
       const existingFlag = await db.query(
@@ -245,8 +246,7 @@ export async function POST(request: Request) {
 
     if (shiftRes.rows.length > 0) {
       const shiftId = shiftRes.rows[0].id;
-      // If checking in, mark completed. (Simplification: completed once checked in)
-      if (log_type === 'Check_In') {
+      if (log_type === 'Check_In' || log_type === 'Check_Out') {
         await db.query(`UPDATE shifts SET status = 'Completed' WHERE id = $1`, [shiftId]);
       }
     } else {

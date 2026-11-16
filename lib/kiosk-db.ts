@@ -21,10 +21,19 @@ export interface OfflinePunch {
   confidence: number;
   gps_lat?: number;
   gps_lng?: number;
+  face_embedding?: number[];
   synced: number; // 0 = unsynced, 1 = synced (IndexedDB indexes require IDBValidKey)
 }
 
+function isIndexedDBAvailable(): boolean {
+  return typeof window !== 'undefined' && typeof indexedDB !== 'undefined';
+}
+
 function openDB(): Promise<IDBDatabase> {
+  if (!isIndexedDBAvailable()) {
+    return Promise.reject(new Error('IndexedDB is not available in the current environment.'));
+  }
+
   return new Promise((resolve, reject) => {
     const request = indexedDB.open(DB_NAME, DB_VERSION);
 
@@ -41,7 +50,7 @@ function openDB(): Promise<IDBDatabase> {
     };
 
     request.onsuccess = () => resolve(request.result);
-    request.onerror = () => reject(request.error);
+    request.onerror = () => reject(request.error || new Error('Failed to open IndexedDB'));
   });
 }
 
@@ -49,6 +58,11 @@ function openDB(): Promise<IDBDatabase> {
  * Save a punch record to IndexedDB for offline storage.
  */
 export async function savePunch(punch: Omit<OfflinePunch, 'id'>): Promise<number> {
+  if (!isIndexedDBAvailable()) {
+    console.warn('savePunch: IndexedDB is not supported in this runtime.');
+    return 0;
+  }
+
   const db = await openDB();
   return new Promise((resolve, reject) => {
     const tx = db.transaction(STORE_NAME, 'readwrite');
@@ -57,6 +71,10 @@ export async function savePunch(punch: Omit<OfflinePunch, 'id'>): Promise<number
 
     request.onsuccess = () => resolve(request.result as number);
     request.onerror = () => reject(request.error);
+    tx.onerror = () => {
+      db.close();
+      reject(tx.error);
+    };
     tx.oncomplete = () => db.close();
   });
 }
@@ -65,39 +83,67 @@ export async function savePunch(punch: Omit<OfflinePunch, 'id'>): Promise<number
  * Retrieve all unsynced punches from IndexedDB.
  */
 export async function getUnsyncedPunches(): Promise<OfflinePunch[]> {
-  const db = await openDB();
-  return new Promise((resolve, reject) => {
-    const tx = db.transaction(STORE_NAME, 'readonly');
-    const store = tx.objectStore(STORE_NAME);
-    const index = store.index('synced');
-    const request = index.getAll(0); // 0 = unsynced
+  if (!isIndexedDBAvailable()) {
+    return [];
+  }
 
-    request.onsuccess = () => resolve(request.result as OfflinePunch[]);
-    request.onerror = () => reject(request.error);
-    tx.oncomplete = () => db.close();
-  });
+  try {
+    const db = await openDB();
+    return new Promise((resolve, reject) => {
+      const tx = db.transaction(STORE_NAME, 'readonly');
+      const store = tx.objectStore(STORE_NAME);
+      const index = store.index('synced');
+      const request = index.getAll(0); // 0 = unsynced
+
+      request.onsuccess = () => resolve(request.result as OfflinePunch[]);
+      request.onerror = () => reject(request.error);
+      tx.onerror = () => {
+        db.close();
+        reject(tx.error);
+      };
+      tx.oncomplete = () => db.close();
+    });
+  } catch (err) {
+    console.error('getUnsyncedPunches error:', err);
+    return [];
+  }
 }
 
 /**
  * Retrieve all punches from IndexedDB.
  */
 export async function getAllPunches(): Promise<OfflinePunch[]> {
-  const db = await openDB();
-  return new Promise((resolve, reject) => {
-    const tx = db.transaction(STORE_NAME, 'readonly');
-    const store = tx.objectStore(STORE_NAME);
-    const request = store.getAll();
+  if (!isIndexedDBAvailable()) {
+    return [];
+  }
 
-    request.onsuccess = () => resolve(request.result as OfflinePunch[]);
-    request.onerror = () => reject(request.error);
-    tx.oncomplete = () => db.close();
-  });
+  try {
+    const db = await openDB();
+    return new Promise((resolve, reject) => {
+      const tx = db.transaction(STORE_NAME, 'readonly');
+      const store = tx.objectStore(STORE_NAME);
+      const request = store.getAll();
+
+      request.onsuccess = () => resolve(request.result as OfflinePunch[]);
+      request.onerror = () => reject(request.error);
+      tx.onerror = () => {
+        db.close();
+        reject(tx.error);
+      };
+      tx.oncomplete = () => db.close();
+    });
+  } catch (err) {
+    console.error('getAllPunches error:', err);
+    return [];
+  }
 }
 
 /**
  * Mark a punch as synced after successful server upload.
  */
 export async function markPunchSynced(id: number): Promise<void> {
+  if (!isIndexedDBAvailable()) return;
+
   const db = await openDB();
   return new Promise((resolve, reject) => {
     const tx = db.transaction(STORE_NAME, 'readwrite');
@@ -108,11 +154,18 @@ export async function markPunchSynced(id: number): Promise<void> {
       const record = getReq.result;
       if (record) {
         record.synced = 1;
-        store.put(record);
+        const putReq = store.put(record);
+        putReq.onsuccess = () => resolve();
+        putReq.onerror = () => reject(putReq.error);
+      } else {
+        resolve();
       }
-      resolve();
     };
     getReq.onerror = () => reject(getReq.error);
+    tx.onerror = () => {
+      db.close();
+      reject(tx.error);
+    };
     tx.oncomplete = () => db.close();
   });
 }
@@ -121,6 +174,8 @@ export async function markPunchSynced(id: number): Promise<void> {
  * Clear all synced punches from the store to reclaim space.
  */
 export async function clearSyncedPunches(): Promise<void> {
+  if (!isIndexedDBAvailable()) return;
+
   const db = await openDB();
   return new Promise((resolve, reject) => {
     const tx = db.transaction(STORE_NAME, 'readwrite');
@@ -140,7 +195,10 @@ export async function clearSyncedPunches(): Promise<void> {
       db.close();
       resolve();
     };
-    tx.onerror = () => reject(tx.error);
+    tx.onerror = () => {
+      db.close();
+      reject(tx.error);
+    };
   });
 }
 
@@ -148,15 +206,26 @@ export async function clearSyncedPunches(): Promise<void> {
  * Get the count of unsynced punches stored offline.
  */
 export async function getUnsyncedCount(): Promise<number> {
-  const db = await openDB();
-  return new Promise((resolve, reject) => {
-    const tx = db.transaction(STORE_NAME, 'readonly');
-    const store = tx.objectStore(STORE_NAME);
-    const index = store.index('synced');
-    const request = index.count(0); // 0 = unsynced
+  if (!isIndexedDBAvailable()) return 0;
 
-    request.onsuccess = () => resolve(request.result);
-    request.onerror = () => reject(request.error);
-    tx.oncomplete = () => db.close();
-  });
+  try {
+    const db = await openDB();
+    return new Promise((resolve, reject) => {
+      const tx = db.transaction(STORE_NAME, 'readonly');
+      const store = tx.objectStore(STORE_NAME);
+      const index = store.index('synced');
+      const request = index.count(0); // 0 = unsynced
+
+      request.onsuccess = () => resolve(request.result);
+      request.onerror = () => reject(request.error);
+      tx.onerror = () => {
+        db.close();
+        reject(tx.error);
+      };
+      tx.oncomplete = () => db.close();
+    });
+  } catch (err) {
+    console.error('getUnsyncedCount error:', err);
+    return 0;
+  }
 }

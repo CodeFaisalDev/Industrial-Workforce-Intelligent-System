@@ -29,6 +29,8 @@ export default function KioskMode({ role, userId, userName }: KioskProps) {
   // Network connection settings (offline mode simulation)
   const [offlineMode, setOfflineMode] = useState(false);
   const [offlineLogs, setOfflineLogs] = useState<any[]>([]);
+  const [syncNotification, setSyncNotification] = useState<string | null>(null);
+  const isSyncingRef = useRef(false);
 
   // Face verification simulation profile
   const [presentedFace, setPresentedFace] = useState<'correct' | 'wrong' | 'unknown'>('correct');
@@ -73,10 +75,10 @@ export default function KioskMode({ role, userId, userName }: KioskProps) {
 
   // Sync offline logs when connection is restored
   useEffect(() => {
-    if (!offlineMode && offlineLogs.length > 0) {
+    if (!offlineMode && offlineLogs.length > 0 && !isSyncingRef.current) {
       syncOfflineLogs();
     }
-  }, [offlineMode, offlineLogs]);
+  }, [offlineMode]);
 
   const startCamera = async () => {
     setScanState('scanning');
@@ -253,14 +255,17 @@ export default function KioskMode({ role, userId, userName }: KioskProps) {
   };
 
   const syncOfflineLogs = async () => {
+    if (isSyncingRef.current) return;
+    isSyncingRef.current = true;
     console.log('Online connection restored. Syncing cached kiosk logs from IndexedDB to Neon...');
     try {
       const logsToSync = await getUnsyncedPunches();
       if (logsToSync.length === 0) return;
 
+      let syncedCount = 0;
       for (const log of logsToSync) {
         try {
-          await fetch('/api/attendance', {
+          const res = await fetch('/api/attendance', {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({
@@ -273,10 +278,11 @@ export default function KioskMode({ role, userId, userName }: KioskProps) {
               device_type: 'Kiosk',
               confidence_score: log.confidence,
               face_embedding: (log as any).face_embedding,
-            })
+            }),
           });
-          if (log.id) {
+          if (res.ok && log.id) {
             await markPunchSynced(log.id);
+            syncedCount++;
           }
         } catch (err) {
           console.error('Failed to sync log item:', log, err);
@@ -285,9 +291,14 @@ export default function KioskMode({ role, userId, userName }: KioskProps) {
 
       await clearSyncedPunches();
       await loadOfflineCount();
-      alert('Synchronized all cached offline logs to database successfully!');
+      if (syncedCount > 0) {
+        setSyncNotification(`Synchronized ${syncedCount} cached offline log(s) to database successfully!`);
+        setTimeout(() => setSyncNotification(null), 5000);
+      }
     } catch (err) {
       console.error('Failed to sync offline logs:', err);
+    } finally {
+      isSyncingRef.current = false;
     }
   };
 
@@ -309,6 +320,14 @@ export default function KioskMode({ role, userId, userName }: KioskProps) {
         <h2 className="text-2xl font-bold tracking-tight text-center">Entrance Kiosk Terminal</h2>
         <p className="text-muted-foreground text-sm text-center">Simulated device mounting at the factory entrance gates.</p>
       </div>
+
+      {/* Sync Notification Banner */}
+      {syncNotification && (
+        <div className="flex items-center gap-2.5 bg-emerald-500/10 border border-emerald-500/30 text-emerald-500 text-xs font-semibold p-3.5 rounded-xl animate-in fade-in slide-in-from-top-2 duration-300">
+          <BadgeCheck size={16} className="shrink-0" />
+          <span>{syncNotification}</span>
+        </div>
+      )}
 
       {/* Settings / Simulation control */}
       <div className="grid grid-cols-2 gap-4">

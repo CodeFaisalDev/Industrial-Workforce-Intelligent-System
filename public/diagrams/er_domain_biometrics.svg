@@ -1,0 +1,155 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1200 680" width="100%" height="100%" style="background:#ffffff; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;">
+      
+      <defs>
+        <!-- Crow's Foot Markers & Connectors -->
+        <marker id="cf-many" viewBox="0 0 14 14" refX="13" refY="7" markerWidth="10" markerHeight="10" orient="auto">
+          <path d="M 0 1 L 13 7 L 0 13 M 13 1 L 13 13" fill="none" stroke="#475569" stroke-width="1.8" />
+        </marker>
+        <marker id="cf-one" viewBox="0 0 14 14" refX="1" refY="7" markerWidth="10" markerHeight="10" orient="auto">
+          <path d="M 4 1 L 4 13 M 9 1 L 9 13" fill="none" stroke="#475569" stroke-width="1.8" />
+        </marker>
+        <marker id="cf-zero-many" viewBox="0 0 18 14" refX="17" refY="7" markerWidth="12" markerHeight="10" orient="auto">
+          <circle cx="5" cy="7" r="3.5" fill="#ffffff" stroke="#475569" stroke-width="1.6" />
+          <path d="M 9 1 L 18 7 L 9 13 M 18 1 L 18 13" fill="none" stroke="#475569" stroke-width="1.8" />
+        </marker>
+        <marker id="cf-arrow" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
+          <path d="M 0 1 L 10 5 L 0 9 z" fill="#3b82f6" />
+        </marker>
+        <!-- Drop Shadows -->
+        <filter id="erd-shadow" x="-5%" y="-5%" width="115%" height="115%">
+          <feDropShadow dx="2" dy="3" stdDeviation="3.5" flood-opacity="0.10" />
+        </filter>
+        <filter id="badge-shadow" x="-10%" y="-10%" width="120%" height="120%">
+          <feDropShadow dx="1" dy="1" stdDeviation="1.5" flood-opacity="0.15" />
+        </filter>
+        <!-- Background Grid Pattern -->
+        <pattern id="erd-grid" width="40" height="40" patternUnits="userSpaceOnUse">
+          <path d="M 40 0 L 0 0 0 40" fill="none" stroke="#f1f5f9" stroke-width="1"/>
+        </pattern>
+      </defs>
+    
+      <rect width="1200" height="680" fill="url(#erd-grid)" />
+
+      <!-- HEADER -->
+      <rect x="30" y="20" width="1140" height="58" rx="8" fill="#065f46" filter="url(#erd-shadow)"/>
+      <text x="50" y="44" font-size="16" font-weight="800" fill="#ffffff">DOMAIN 2: BIOMETRIC VECTOR STORE &amp; EDGE KIOSK ATTENDANCE</text>
+      <text x="50" y="63" font-size="11" font-weight="500" fill="#a7f3d0">pgvector High-Dimensional Embeddings, Offline IndexedDB Punch Cache, and Geofenced Verification</text>
+
+      <!-- CONNECTORS -->
+      <g fill="none" stroke="#047857" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+        <!-- employees -> face_embeddings (1:1 / 1:N) -->
+        <path d="M 400 190 L 300 190" marker-start="url(#cf-one)" marker-end="url(#cf-many)"/>
+        <!-- employees -> biometric_logs (1:N) -->
+        <path d="M 520 270 L 520 370" marker-start="url(#cf-one)" marker-end="url(#cf-many)"/>
+        <!-- employees -> recognition_attempts (1:N) -->
+        <path d="M 640 190 L 740 190" marker-start="url(#cf-one)" marker-end="url(#cf-zero-many)"/>
+        <!-- kiosk_offline_db -> biometric_logs (Sync) -->
+        <path d="M 740 460 L 650 460" stroke="#059669" stroke-width="2.2" stroke-dasharray="5 3" marker-end="url(#cf-arrow)"/>
+      </g>
+
+      <!-- ENTITIES -->
+      <!-- 1. face_embeddings -->
+      <g filter="url(#erd-shadow)" transform="translate(40, 110)">
+        <rect width="260" height="175" rx="8" fill="#ffffff" stroke="#065f46" stroke-width="2"/>
+        <rect width="260" height="30" rx="8" fill="#065f46"/>
+        <text x="12" y="20" font-size="12" font-weight="800" fill="#6ee7b7">face_embeddings</text>
+        <text x="248" y="20" text-anchor="end" font-size="9" font-weight="700" fill="#a7f3d0">pgvector (128d)</text>
+        <g font-size="10" font-family="Consolas, monospace" fill="#0f172a">
+          <text x="12" y="52"><tspan fill="#b45309" font-weight="700">PK</tspan>  id : SERIAL NOT NULL</text>
+          <text x="12" y="72"><tspan fill="#2563eb" font-weight="700">FK</tspan>  employee_id : INTEGER NOT NULL</text>
+          <text x="12" y="92"><tspan fill="#059669" font-weight="700">VEC</tspan> embedding : vector(128) NOT NULL</text>
+          <text x="12" y="112">    enrolled_at : TIMESTAMPTZ DEFAULT NOW</text>
+          <text x="12" y="132">    is_active : BOOLEAN DEFAULT TRUE</text>
+        </g>
+        <line x1="0" y1="142" x2="260" y2="142" stroke="#f1f5f9"/>
+        <text x="12" y="158" font-size="8.5" fill="#047857" font-weight="600">Metric: Euclidean L2 distance &lt;= 0.05</text>
+      </g>
+
+      <!-- 2. employees (Anchor) -->
+      <g filter="url(#erd-shadow)" transform="translate(400, 110)">
+        <rect width="240" height="160" rx="8" fill="#ffffff" stroke="#1d4ed8" stroke-width="2"/>
+        <rect width="240" height="30" rx="8" fill="#1e40af"/>
+        <text x="12" y="20" font-size="12" font-weight="800" fill="#ffffff">employees (Biometric Ref)</text>
+        <g font-size="10" font-family="Consolas, monospace" fill="#0f172a">
+          <text x="12" y="52"><tspan fill="#b45309" font-weight="700">PK</tspan>  id : SERIAL NOT NULL</text>
+          <text x="12" y="74">    name : VARCHAR(255)</text>
+          <text x="12" y="96">    role : VARCHAR(50)</text>
+          <text x="12" y="118">    status : VARCHAR(50)</text>
+        </g>
+        <line x1="0" y1="130" x2="240" y2="130" stroke="#f1f5f9"/>
+        <text x="12" y="146" font-size="8.5" fill="#64748b">Attendance subject principal</text>
+      </g>
+
+      <!-- 3. recognition_attempts -->
+      <g filter="url(#erd-shadow)" transform="translate(740, 110)">
+        <rect width="270" height="190" rx="8" fill="#ffffff" stroke="#065f46" stroke-width="2"/>
+        <rect width="270" height="30" rx="8" fill="#065f46"/>
+        <text x="12" y="20" font-size="12" font-weight="800" fill="#6ee7b7">recognition_attempts</text>
+        <text x="258" y="20" text-anchor="end" font-size="9" font-weight="700" fill="#a7f3d0">LIVENESS AUDIT</text>
+        <g font-size="10" font-family="Consolas, monospace" fill="#0f172a">
+          <text x="12" y="52"><tspan fill="#b45309" font-weight="700">PK</tspan>  id : SERIAL NOT NULL</text>
+          <text x="12" y="72"><tspan fill="#2563eb" font-weight="700">FK</tspan>  employee_id : INTEGER (nullable)</text>
+          <text x="12" y="92">    confidence_score : DOUBLE PRECISION</text>
+          <text x="12" y="112">    matched : BOOLEAN NOT NULL</text>
+          <text x="12" y="132">    device_type : VARCHAR(50) [Kiosk/Mobile]</text>
+          <text x="12" y="152">    gps_lat : DOUBLE PRECISION</text>
+          <text x="12" y="172">    timestamp : TIMESTAMPTZ DEFAULT NOW</text>
+        </g>
+      </g>
+
+      <!-- 4. biometric_logs -->
+      <g filter="url(#erd-shadow)" transform="translate(380, 370)">
+        <rect width="270" height="220" rx="8" fill="#ffffff" stroke="#065f46" stroke-width="2"/>
+        <rect width="270" height="30" rx="8" fill="#065f46"/>
+        <text x="12" y="20" font-size="12" font-weight="800" fill="#6ee7b7">biometric_logs</text>
+        <text x="258" y="20" text-anchor="end" font-size="9" font-weight="700" fill="#a7f3d0">PRODUCTION ATTENDANCE</text>
+        <g font-size="10" font-family="Consolas, monospace" fill="#0f172a">
+          <text x="12" y="52"><tspan fill="#b45309" font-weight="700">PK</tspan>  id : SERIAL NOT NULL</text>
+          <text x="12" y="72"><tspan fill="#2563eb" font-weight="700">FK</tspan>  employee_id : INTEGER NOT NULL</text>
+          <text x="12" y="92">    timestamp : TIMESTAMPTZ NOT NULL</text>
+          <text x="12" y="112">    log_type : VARCHAR(50) [Check_In/Out]</text>
+          <text x="12" y="132">    device_id : VARCHAR(255) NOT NULL</text>
+          <text x="12" y="152">    verified_by_face : BOOLEAN DEFAULT FALSE</text>
+          <text x="12" y="172">    gps_lat : DOUBLE PRECISION</text>
+          <text x="12" y="192">    gps_lng : DOUBLE PRECISION</text>
+          <text x="12" y="210">    created_at : TIMESTAMPTZ DEFAULT NOW</text>
+        </g>
+      </g>
+
+      <!-- 5. kiosk_offline_db.punches (IndexedDB) -->
+      <g filter="url(#erd-shadow)" transform="translate(740, 370)">
+        <rect width="270" height="190" rx="8" fill="#f0fdf4" stroke="#059669" stroke-width="2.2" stroke-dasharray="5 3"/>
+        <rect width="270" height="30" rx="8" fill="#047857"/>
+        <text x="12" y="20" font-size="11.5" font-weight="800" fill="#ffffff">kiosk_offline_db.punches</text>
+        <text x="258" y="20" text-anchor="end" font-size="9" font-weight="700" fill="#a7f3d0">INDEXEDDB</text>
+        <g font-size="10" font-family="Consolas, monospace" fill="#0f172a">
+          <text x="12" y="52"><tspan fill="#b45309" font-weight="700">KP</tspan>  id : INTEGER [autoIncrement]</text>
+          <text x="12" y="72"><tspan fill="#059669" font-weight="700">IDX</tspan> employee_id : INTEGER</text>
+          <text x="12" y="92">    employee_name : STRING</text>
+          <text x="12" y="112">    timestamp : ISO_STRING</text>
+          <text x="12" y="132">    log_type : 'Check_In' | 'Check_Out'</text>
+          <text x="12" y="152">    confidence : DOUBLE PRECISION</text>
+          <text x="12" y="172"><tspan fill="#059669" font-weight="700">IDX</tspan> synced : 0 (unsynced) | 1 (synced)</text>
+        </g>
+      </g>
+
+      <!-- ARCHITECTURAL CALLOUT -->
+      <g transform="translate(40, 370)">
+        <rect width="310" height="220" rx="8" fill="#f8fafc" stroke="#cbd5e1" stroke-width="1.5"/>
+        <rect width="310" height="26" rx="8" fill="#e2e8f0"/>
+        <text x="12" y="18" font-size="10.5" font-weight="800" fill="#065f46">OFFLINE SYNC &amp; VECTOR PIPELINE</text>
+        <g font-size="9" fill="#334155" transform="translate(12, 40)">
+          <text x="0" y="0" font-weight="700" fill="#0f172a">1. Vector Mathematical Metric:</text>
+          <text x="0" y="15">Face embedding vectors are stored as `vector(128)`.</text>
+          <text x="0" y="30">Calculated via Euclidean L2 distance: ||A - B|| &lt;= 0.05.</text>
+          
+          <text x="0" y="55" font-weight="700" fill="#0f172a">2. Factory Geofencing Check:</text>
+          <text x="0" y="70">Punches calculate Haversine distance to main gate.</text>
+          <text x="0" y="85">Distance &gt; 500 meters triggers security warning.</text>
+
+          <text x="0" y="110" font-weight="700" fill="#0f172a">3. Zero-Data-Loss Offline Pipeline:</text>
+          <text x="0" y="125">If network drops, kiosk punches write to IndexedDB.</text>
+          <text x="0" y="140">Auto-sync re-uploads punches once online status returns.</text>
+        </g>
+      </g>
+    </svg>

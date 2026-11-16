@@ -10,10 +10,15 @@
 import { fetchWithQuotaChecking } from '@/lib/quota-monitor';
 
 const GROQ_API_KEY = process.env.GROQ_API_KEY || process.env.groq_api_key;
-const GROQ_MODEL = 'llama-3.3-70b-specdec';
+const GROQ_MODELS = [
+  process.env.GROQ_MODEL,
+  'openai/gpt-oss-120b',
+  'openai/gpt-oss-20b',
+  'qwen/qwen3.8-27b',
+].filter(Boolean) as string[];
 
 const GEMINI_API_KEY = process.env.GEMINI_API_KEY || process.env.gemini_api_key;
-const GEMINI_MODEL = 'gemini-2.0-flash-lite';
+const GEMINI_MODEL = process.env.GEMINI_MODEL || 'gemini-2.0-flash';
 const GEMINI_ENDPOINT = `https://generativelanguage.googleapis.com/v1beta/models/${GEMINI_MODEL}:generateContent`;
 
 interface AIRequestOptions {
@@ -25,47 +30,48 @@ interface AIRequestOptions {
 }
 
 /**
- * Calls Groq first, falls back to Gemini, returns null if both fail.
+ * Calls Groq first (with multi-model fallback), falls back to Gemini, returns null if all fail.
  */
 export async function callAIWithFallback(options: AIRequestOptions): Promise<string | null> {
   const { prompt, systemPrompt, messages, temperature = 0.5, maxTokens = 150 } = options;
 
   // --- Attempt 1: Groq ---
   if (GROQ_API_KEY) {
-    try {
-      const groqMessages = messages
-        ? messages
-        : [
-            ...(systemPrompt ? [{ role: 'system', content: systemPrompt }] : []),
-            { role: 'user', content: prompt },
-          ];
+    const groqMessages = messages
+      ? messages
+      : [
+          ...(systemPrompt ? [{ role: 'system', content: systemPrompt }] : []),
+          { role: 'user', content: prompt },
+        ];
 
-      const response = await fetchWithQuotaChecking('https://api.groq.com/openai/v1/chat/completions', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          'Authorization': `Bearer ${GROQ_API_KEY}`,
-        },
-        body: JSON.stringify({
-          model: GROQ_MODEL,
-          messages: groqMessages,
-          temperature,
-          max_tokens: maxTokens,
-        }),
-      });
+    for (const model of GROQ_MODELS) {
+      try {
+        const response = await fetchWithQuotaChecking('https://api.groq.com/openai/v1/chat/completions', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            'Authorization': `Bearer ${GROQ_API_KEY}`,
+          },
+          body: JSON.stringify({
+            model,
+            messages: groqMessages,
+            temperature,
+            max_tokens: maxTokens,
+          }),
+        });
 
-      if (response.ok) {
-        const data = await response.json();
-        const text = data.choices?.[0]?.message?.content?.trim();
-        if (text) {
-          console.log('[AI Provider] Groq response received successfully.');
-          return text;
+        if (response.ok) {
+          const data = await response.json();
+          const text = data.choices?.[0]?.message?.content?.trim();
+          if (text) {
+            console.log(`[AI Provider] Groq response received successfully using model ${model}.`);
+            return text;
+          }
         }
+        console.warn(`[AI Provider] Groq model ${model} returned status ${response.status}. Trying next model...`);
+      } catch (error: any) {
+        console.warn(`[AI Provider] Groq call failed for model ${model}: ${error.message}. Trying next model...`);
       }
-      // If response is not ok (e.g. 429), we fall through to Gemini
-      console.warn(`[AI Provider] Groq returned status ${response.status}. Falling back to Gemini...`);
-    } catch (error: any) {
-      console.warn(`[AI Provider] Groq call failed: ${error.message}. Falling back to Gemini...`);
     }
   } else {
     console.log('[AI Provider] No Groq API key. Trying Gemini...');

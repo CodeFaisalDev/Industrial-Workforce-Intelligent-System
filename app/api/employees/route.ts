@@ -28,7 +28,7 @@ export async function GET() {
 
     if (role === 'Floor Manager') {
       empQuery += `
-        AND e.id IN (SELECT worker_id FROM manager_worker_access WHERE manager_id = $2)
+        AND (e.id IN (SELECT worker_id FROM manager_worker_access WHERE manager_id = $2) OR e.id = $2)
       `;
       params.push(userId);
     } else if (role === 'Worker') {
@@ -65,7 +65,14 @@ export async function POST(request: Request) {
       return NextResponse.json({ success: false, error: 'Unauthorized' }, { status: 401 });
     }
 
+    const sessionRole = (session.user as any).role;
+    const sessionUserId = parseInt((session.user as any).id, 10);
     const companyId = (session.user as any).company_id;
+
+    if (sessionRole !== 'HR Admin' && sessionRole !== 'Floor Manager') {
+      return NextResponse.json({ success: false, error: 'Unauthorized: Only HR Admins and Floor Managers can register employees.' }, { status: 403 });
+    }
+
     const body = await request.json();
     const { name, email, role, department_id, password } = body;
 
@@ -73,16 +80,32 @@ export async function POST(request: Request) {
       return NextResponse.json({ success: false, error: 'Name and Email are required.' }, { status: 400 });
     }
 
+    // Floor Managers can only register Workers
+    const assignedRole = sessionRole === 'Floor Manager' ? 'Worker' : (role || 'Worker');
+
     const rawPassword = password || 'Worker123@';
     const hashedPassword = bcrypt.hashSync(rawPassword, 10);
 
-    await db.query(
+    const insertRes = await db.query(
       `INSERT INTO employees (name, email, role, department_id, status, password, company_id)
-       VALUES ($1, $2, $3, $4, 'Active', $5, $6)`,
-      [name, email, role || 'Worker', department_id || null, hashedPassword, companyId]
+       VALUES ($1, $2, $3, $4, 'Active', $5, $6)
+       RETURNING id`,
+      [name.trim(), email.toLowerCase().trim(), assignedRole, department_id || null, hashedPassword, companyId]
     );
 
-    return NextResponse.json({ success: true, message: 'Employee profile created successfully!' });
+    const newEmpId = insertRes.rows[0].id;
+
+    // If registered by Floor Manager, grant access to this manager automatically
+    if (sessionRole === 'Floor Manager') {
+      await db.query(
+        `INSERT INTO manager_worker_access (manager_id, worker_id)
+         VALUES ($1, $2)
+         ON CONFLICT DO NOTHING`,
+        [sessionUserId, newEmpId]
+      );
+    }
+
+    return NextResponse.json({ success: true, message: 'Employee profile created successfully!', employee_id: newEmpId });
   } catch (error: any) {
     console.error('Failed to create employee:', error);
     return NextResponse.json({ success: false, error: error.message }, { status: 500 });

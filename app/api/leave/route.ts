@@ -63,10 +63,19 @@ export async function POST(request: Request) {
 
     const companyId = (session.user as any).company_id;
     const sessionUserId = parseInt((session.user as any).id, 10);
+    const role = (session.user as any).role;
     const body = await request.json();
     const { employee_id, leave_type, start_date, end_date, reason } = body;
 
     const targetEmpId = employee_id ? parseInt(employee_id, 10) : sessionUserId;
+
+    // Workers can only submit leave requests for themselves
+    if (role === 'Worker' && targetEmpId !== sessionUserId) {
+      return NextResponse.json(
+        { success: false, error: 'Access denied: workers can only file leave requests for themselves.' },
+        { status: 403 }
+      );
+    }
 
     if (!leave_type || !start_date || !end_date || !reason) {
       return NextResponse.json(
@@ -107,6 +116,7 @@ export async function PUT(request: Request) {
     }
 
     const role = (session.user as any).role;
+    const sessionUserId = parseInt((session.user as any).id, 10);
     if (role !== 'HR Admin' && role !== 'Floor Manager') {
       return NextResponse.json({ success: false, error: 'Unauthorized to approve or reject leave.' }, { status: 403 });
     }
@@ -119,20 +129,40 @@ export async function PUT(request: Request) {
       return NextResponse.json({ success: false, error: 'leave_id and valid status (Approved or Rejected) are required.' }, { status: 400 });
     }
 
-    // Verify leave request belongs to an employee in this company
-    const checkRes = await db.query(
-      `SELECT l.id FROM leave_requests l JOIN employees e ON l.employee_id = e.id WHERE l.id = $1 AND e.company_id = $2`,
-      [leave_id, companyId]
-    );
+    // Verify leave request belongs to an employee in this company and within manager access scope
+    let checkQuery = `
+      SELECT l.id, l.employee_id, l.start_date, l.end_date
+      FROM leave_requests l
+      JOIN employees e ON l.employee_id = e.id
+      WHERE l.id = $1 AND e.company_id = $2
+    `;
+    const checkParams: any[] = [leave_id, companyId];
+
+    if (role === 'Floor Manager') {
+      checkQuery += ` AND (l.employee_id = $3 OR l.employee_id IN (SELECT worker_id FROM manager_worker_access WHERE manager_id = $3))`;
+      checkParams.push(sessionUserId);
+    }
+
+    const checkRes = await db.query(checkQuery, checkParams);
 
     if (checkRes.rows.length === 0) {
-      return NextResponse.json({ success: false, error: 'Access denied: request not found in your company.' }, { status: 403 });
+      return NextResponse.json({ success: false, error: 'Access denied: request not found in your managed group.' }, { status: 403 });
     }
 
     await db.query(
       `UPDATE leave_requests SET status = $1 WHERE id = $2`,
       [status, leave_id]
     );
+
+    // If approved, update overlapping scheduled shifts to 'Standby' so rosters & attendance reflect approved leave
+    if (status === 'Approved') {
+      const leaveRecord = checkRes.rows[0];
+      await db.query(
+        `UPDATE shifts SET status = 'Standby'
+         WHERE employee_id = $1 AND date >= $2 AND date <= $3 AND status = 'Scheduled'`,
+        [leaveRecord.employee_id, leaveRecord.start_date, leaveRecord.end_date]
+      );
+    }
 
     return NextResponse.json({ success: true, message: `Leave request ${status.toLowerCase()} successfully!` });
   } catch (error: any) {

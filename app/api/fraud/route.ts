@@ -51,14 +51,28 @@ export async function GET() {
     }
 
     const companyId = (session.user as any).company_id;
+    const sessionRole = (session.user as any).role;
+    const sessionUserId = parseInt((session.user as any).id, 10);
 
-    const result = await db.query(`
+    let query = `
       SELECT f.*, e.name as employee_name, e.role as employee_role
       FROM fraud_flags f
       LEFT JOIN employees e ON f.employee_id = e.id
       WHERE e.company_id = $1
-      ORDER BY f.raised_at DESC
-    `, [companyId]);
+    `;
+    const params: any[] = [companyId];
+
+    if (sessionRole === 'Worker') {
+      query += ` AND f.employee_id = $2`;
+      params.push(sessionUserId);
+    } else if (sessionRole === 'Floor Manager') {
+      query += ` AND (f.employee_id = $2 OR f.employee_id IN (SELECT worker_id FROM manager_worker_access WHERE manager_id = $2))`;
+      params.push(sessionUserId);
+    }
+
+    query += ` ORDER BY f.raised_at DESC`;
+
+    const result = await db.query(query, params);
     return NextResponse.json({ success: true, flags: result.rows });
   } catch (error: any) {
     console.error('Failed to get fraud flags:', error);
@@ -71,6 +85,14 @@ export async function POST(request: Request) {
     const session = await getServerSession(authOptions);
     if (!session) {
       return NextResponse.json({ success: false, error: 'Unauthorized' }, { status: 401 });
+    }
+
+    const sessionRole = (session.user as any).role;
+    if (sessionRole !== 'HR Admin') {
+      return NextResponse.json(
+        { success: false, error: 'Access denied: Only HR Admins can run the automated fraud audit engine.' },
+        { status: 403 }
+      );
     }
 
     const companyId = (session.user as any).company_id;
@@ -233,9 +255,18 @@ export async function PUT(request: Request) {
       return NextResponse.json({ success: false, error: 'Unauthorized' }, { status: 401 });
     }
 
+    const sessionRole = (session.user as any).role;
+    if (sessionRole !== 'HR Admin') {
+      return NextResponse.json(
+        { success: false, error: 'Access denied: Only HR Admins can review and resolve fraud flags.' },
+        { status: 403 }
+      );
+    }
+
+    const sessionUserId = parseInt((session.user as any).id, 10);
     const companyId = (session.user as any).company_id;
     const body = await request.json();
-    const { flag_id, status, resolved_by } = body;
+    const { flag_id, status } = body;
 
     if (!flag_id || !status) {
       return NextResponse.json({ success: false, error: 'flag_id and status are required.' }, { status: 400 });
@@ -257,7 +288,7 @@ export async function PUT(request: Request) {
       `UPDATE fraud_flags
        SET status = $1, resolved_by = $2
        WHERE id = $3`,
-      [status, resolved_by || null, flag_id]
+      [status, sessionUserId, flag_id]
     );
 
     return NextResponse.json({ success: true, message: 'Fraud flag updated successfully!' });

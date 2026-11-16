@@ -1,0 +1,143 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1200 680" width="100%" height="100%" style="background:#ffffff; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;">
+      
+      <defs>
+        <!-- Crow's Foot Markers & Connectors -->
+        <marker id="cf-many" viewBox="0 0 14 14" refX="13" refY="7" markerWidth="10" markerHeight="10" orient="auto">
+          <path d="M 0 1 L 13 7 L 0 13 M 13 1 L 13 13" fill="none" stroke="#475569" stroke-width="1.8" />
+        </marker>
+        <marker id="cf-one" viewBox="0 0 14 14" refX="1" refY="7" markerWidth="10" markerHeight="10" orient="auto">
+          <path d="M 4 1 L 4 13 M 9 1 L 9 13" fill="none" stroke="#475569" stroke-width="1.8" />
+        </marker>
+        <marker id="cf-zero-many" viewBox="0 0 18 14" refX="17" refY="7" markerWidth="12" markerHeight="10" orient="auto">
+          <circle cx="5" cy="7" r="3.5" fill="#ffffff" stroke="#475569" stroke-width="1.6" />
+          <path d="M 9 1 L 18 7 L 9 13 M 18 1 L 18 13" fill="none" stroke="#475569" stroke-width="1.8" />
+        </marker>
+        <marker id="cf-arrow" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
+          <path d="M 0 1 L 10 5 L 0 9 z" fill="#3b82f6" />
+        </marker>
+        <!-- Drop Shadows -->
+        <filter id="erd-shadow" x="-5%" y="-5%" width="115%" height="115%">
+          <feDropShadow dx="2" dy="3" stdDeviation="3.5" flood-opacity="0.10" />
+        </filter>
+        <filter id="badge-shadow" x="-10%" y="-10%" width="120%" height="120%">
+          <feDropShadow dx="1" dy="1" stdDeviation="1.5" flood-opacity="0.15" />
+        </filter>
+        <!-- Background Grid Pattern -->
+        <pattern id="erd-grid" width="40" height="40" patternUnits="userSpaceOnUse">
+          <path d="M 40 0 L 0 0 0 40" fill="none" stroke="#f1f5f9" stroke-width="1"/>
+        </pattern>
+      </defs>
+    
+      <rect width="1200" height="680" fill="url(#erd-grid)" />
+
+      <!-- HEADER -->
+      <rect x="30" y="20" width="1140" height="58" rx="8" fill="#0e7490" filter="url(#erd-shadow)"/>
+      <text x="50" y="44" font-size="16" font-weight="800" fill="#ffffff">DOMAIN 4: DETERMINISTIC PAYROLL, PERFORMANCE &amp; FRAUD TRIAGE</text>
+      <text x="50" y="63" font-size="11" font-weight="500" fill="#a5f3fc">Deterministic 1.5x Overtime Ledgers, Statistical Z-Score Anomaly Engine, and Forensic Flag Triage</text>
+
+      <!-- CONNECTORS -->
+      <g fill="none" stroke="#0891b2" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+        <!-- employees -> payroll_ledgers (1:N) -->
+        <path d="M 330 180 L 440 180" marker-start="url(#cf-one)" marker-end="url(#cf-many)"/>
+        <!-- employees -> performance_scores (1:N) -->
+        <path d="M 200 270 L 200 370 L 440 370" marker-start="url(#cf-one)" marker-end="url(#cf-many)"/>
+        <!-- employees -> fraud_flags (1:N flagged) -->
+        <path d="M 160 270 L 160 510 L 440 510" stroke="#e11d48" marker-start="url(#cf-one)" marker-end="url(#cf-many)"/>
+      </g>
+
+      <!-- ENTITIES -->
+      <!-- 1. employees -->
+      <g filter="url(#erd-shadow)" transform="translate(60, 110)">
+        <rect width="270" height="160" rx="8" fill="#ffffff" stroke="#1d4ed8" stroke-width="2"/>
+        <rect width="270" height="30" rx="8" fill="#1e40af"/>
+        <text x="12" y="20" font-size="12" font-weight="800" fill="#ffffff">employees (Compensation)</text>
+        <g font-size="10" font-family="Consolas, monospace" fill="#0f172a">
+          <text x="12" y="52"><tspan fill="#b45309" font-weight="700">PK</tspan>  id : SERIAL NOT NULL</text>
+          <text x="12" y="74">    name : VARCHAR(255)</text>
+          <text x="12" y="96">    role : VARCHAR(50)</text>
+          <text x="12" y="118">    status : VARCHAR(50)</text>
+        </g>
+        <line x1="0" y1="130" x2="270" y2="130" stroke="#f1f5f9"/>
+        <text x="12" y="146" font-size="8.5" fill="#64748b">Financial payee &amp; audit subject</text>
+      </g>
+
+      <!-- 2. payroll_ledgers -->
+      <g filter="url(#erd-shadow)" transform="translate(440, 95)">
+        <rect width="300" height="230" rx="8" fill="#ffffff" stroke="#0e7490" stroke-width="2"/>
+        <rect width="300" height="30" rx="8" fill="#0e7490"/>
+        <text x="12" y="20" font-size="12" font-weight="800" fill="#67e8f9">payroll_ledgers</text>
+        <text x="288" y="20" text-anchor="end" font-size="9" font-weight="700" fill="#a5f3fc">FINANCIAL RECORD</text>
+        <g font-size="10" font-family="Consolas, monospace" fill="#0f172a">
+          <text x="12" y="52"><tspan fill="#b45309" font-weight="700">PK</tspan>  id : SERIAL NOT NULL</text>
+          <text x="12" y="70"><tspan fill="#2563eb" font-weight="700">FK</tspan>  employee_id : INTEGER NOT NULL</text>
+          <text x="12" y="88">    period_start : DATE NOT NULL</text>
+          <text x="12" y="106">    period_end : DATE NOT NULL</text>
+          <text x="12" y="124">    regular_hours : DOUBLE PRECISION</text>
+          <text x="12" y="142">    overtime_hours : DOUBLE (1.5x OT)</text>
+          <text x="12" y="160">    gross_pay : DOUBLE PRECISION</text>
+          <text x="12" y="178">    deductions : DOUBLE PRECISION</text>
+          <text x="12" y="196"><tspan fill="#059669" font-weight="700">NET</tspan> net_pay : DOUBLE PRECISION</text>
+          <text x="12" y="214">    status : VARCHAR(50) [Draft/Paid]</text>
+        </g>
+      </g>
+
+      <!-- 3. performance_scores -->
+      <g filter="url(#erd-shadow)" transform="translate(440, 345)">
+        <rect width="300" height="150" rx="8" fill="#ffffff" stroke="#0e7490" stroke-width="2"/>
+        <rect width="300" height="28" rx="8" fill="#0e7490"/>
+        <text x="12" y="19" font-size="11.5" font-weight="800" fill="#67e8f9">performance_scores</text>
+        <text x="288" y="19" text-anchor="end" font-size="9" font-weight="700" fill="#a5f3fc">ANALYTICS</text>
+        <g font-size="9.5" font-family="Consolas, monospace" fill="#0f172a">
+          <text x="12" y="46"><tspan fill="#b45309" font-weight="700">PK</tspan>  id : SERIAL NOT NULL</text>
+          <text x="12" y="64"><tspan fill="#2563eb" font-weight="700">FK</tspan>  employee_id : INTEGER NOT NULL</text>
+          <text x="12" y="82">    period : VARCHAR(50) [YYYY-MM]</text>
+          <text x="12" y="100">    punctuality_score : DOUBLE (35%)</text>
+          <text x="12" y="118">    adherence_score : DOUBLE (35%)</text>
+          <text x="12" y="136"><tspan fill="#059669" font-weight="700">SCORE</tspan> composite_score : DOUBLE (100)</text>
+        </g>
+      </g>
+
+      <!-- 4. fraud_flags -->
+      <g filter="url(#erd-shadow)" transform="translate(440, 510)">
+        <rect width="300" height="150" rx="8" fill="#ffffff" stroke="#9f1239" stroke-width="2"/>
+        <rect width="300" height="28" rx="8" fill="#9f1239"/>
+        <text x="12" y="19" font-size="11.5" font-weight="800" fill="#fda4af">fraud_flags</text>
+        <text x="288" y="19" text-anchor="end" font-size="9" font-weight="700" fill="#fecdd3">AUDIT QUEUE</text>
+        <g font-size="9.5" font-family="Consolas, monospace" fill="#0f172a">
+          <text x="12" y="46"><tspan fill="#b45309" font-weight="700">PK</tspan>  id : SERIAL NOT NULL</text>
+          <text x="12" y="64"><tspan fill="#2563eb" font-weight="700">FK</tspan>  employee_id : INTEGER NOT NULL</text>
+          <text x="12" y="82">    flag_type : VARCHAR(50)</text>
+          <text x="12" y="100">    status : VARCHAR(50) [Pending/Resolved]</text>
+          <text x="12" y="118"><tspan fill="#2563eb" font-weight="700">FK</tspan>  resolved_by : INTEGER (nullable)</text>
+          <text x="12" y="136">    details : TEXT</text>
+        </g>
+      </g>
+
+      <!-- CALCULATION FORMULAS & HEURISTICS -->
+      <g transform="translate(770, 95)">
+        <rect width="390" height="565" rx="8" fill="#f8fafc" stroke="#cbd5e1" stroke-width="1.5" />
+        <rect width="390" height="28" rx="8" fill="#e2e8f0" />
+        <text x="15" y="19" font-size="11" font-weight="800" fill="#0e7490">DETERMINISTIC FORMULAS &amp; AUDIT METRICS</text>
+        <g font-size="9.5" fill="#334155" transform="translate(15, 45)">
+          <text x="0" y="0" font-weight="700" fill="#0f172a">1. Deterministic Overtime Engine:</text>
+          <text x="0" y="18">Gross Pay = (Reg Hours x Rate) + (OT Hours x Rate x 1.5)</text>
+          <text x="0" y="34">Deductions = Tax (10%) + Insurance Withholdings</text>
+          <text x="0" y="50">Net Pay = Gross Pay - Deductions</text>
+
+          <text x="0" y="80" font-weight="700" fill="#0f172a">2. Worker Composite Performance Metric:</text>
+          <text x="0" y="98">Score = (0.35 x Punctuality) + (0.35 x Adherence)</text>
+          <text x="0" y="114">        + (0.30 x Overtime Trend Factor)</text>
+          <text x="0" y="130">Punctuality: Check-In relative to shift start (+/- 10 min)</text>
+
+          <text x="0" y="160" font-weight="700" fill="#0f172a">3. Statistical Anomaly &amp; Fraud Heuristics:</text>
+          <text x="0" y="178">`overtime_outlier`: Overtime Z-score &gt; +2.5 standard deviations</text>
+          <text x="0" y="194">`ghost_punch`: Punch logged without biometric face verification</text>
+          <text x="0" y="210">`buddy_punch`: Dual check-ins within 5 minutes on same terminal</text>
+          <text x="0" y="226">`geofence`: GPS delta &gt; 500m from factory perimeter</text>
+
+          <text x="0" y="255" font-weight="700" fill="#0f172a">4. Immutable Audit Trail:</text>
+          <text x="0" y="273">`resolved_by` references resolving HR admin.</text>
+          <text x="0" y="289">Status updates: Dismissed (False Positive) or Escalated.</text>
+        </g>
+      </g>
+    </svg>
