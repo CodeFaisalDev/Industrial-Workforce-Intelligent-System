@@ -5,7 +5,7 @@ import {
   FileText, Download, ExternalLink, ZoomIn, ZoomOut, RotateCcw, 
   Maximize2, Database, ShieldCheck, Cpu, GitBranch, Layers, 
   Workflow, Activity, UserCheck, Calendar, DollarSign, CheckCircle2,
-  Info
+  Info, BookOpen
 } from 'lucide-react';
 import { Button } from './ui/button';
 import { Card } from './ui/card';
@@ -229,10 +229,16 @@ export default function ArchitectureViewer({ role }: ArchitectureViewerProps) {
           </div>
 
           <div className="flex flex-wrap items-center gap-3 shrink-0">
+            <a href="/api/docs/pdf?type=codebase&download=true" download="Industrial_Intel_Complete_Codebase_Guide.pdf">
+              <Button variant="outline" className="bg-emerald-600/20 hover:bg-emerald-600/30 text-emerald-300 border-emerald-500/30 text-sm gap-2">
+                <BookOpen size={16} />
+                Codebase Manual PDF
+              </Button>
+            </a>
             <a href="/api/docs/pdf?download=true" download="AI_Workforce_Management_Specification.pdf">
               <Button className="bg-gradient-to-r from-primary to-violet-600 hover:from-primary/90 hover:to-violet-600/90 text-white font-semibold shadow-lg shadow-primary/25 text-sm gap-2">
                 <Download size={16} />
-                Download Master PDF
+                Master Spec PDF
               </Button>
             </a>
             <a href="/api/docs/pdf" target="_blank" rel="noopener noreferrer">

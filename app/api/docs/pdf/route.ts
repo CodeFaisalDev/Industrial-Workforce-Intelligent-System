@@ -12,6 +12,8 @@ export async function GET(request: Request) {
       ? 'Industrial_Intel_ER_Diagram_Specification.pdf'
       : type === 'dfd'
       ? 'AI_Workforce_Management_DFD_Specification.pdf'
+      : type === 'codebase'
+      ? 'Industrial_Intel_Complete_Codebase_Guide.pdf'
       : 'AI_Workforce_Management_Specification.pdf';
 
     const pdfPath = path.join(process.cwd(), 'public', 'docs', fileName);
